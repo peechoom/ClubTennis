@@ -12,8 +12,8 @@ type Match struct {
 	gorm.Model
 	ChallengerID uint
 	ChallengedID uint
-	Challenger   *User `gorm:"foreignKey:ChallengerID"`
-	Challenged   *User `gorm:"foreignKey:ChallengedID"`
+	Challenger   *User
+	Challenged   *User
 	Score        uint8 `gorm:"default:0"`
 	IsActive     bool
 }
@@ -111,8 +111,16 @@ func (match *Match) SubmitScore(challengerScore int, challengedScore int) (err e
 		return errors.New("illegal score")
 	}
 
-	if challengedScore != 6 && challengerScore != 6 {
+	if (challengedScore != 6 && challengerScore != 6) || (challengerScore == 6 && challengedScore == 6) {
 		return errors.New("illegal score")
+	}
+
+	if challengerScore == 6 {
+		match.Challenger.Wins++
+		match.Challenged.Losses++
+	} else {
+		match.Challenged.Wins++
+		match.Challenger.Losses++
 	}
 
 	match.Score = EncodeScore(challengerScore, challengedScore)

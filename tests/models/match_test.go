@@ -12,8 +12,8 @@ type User = models.User
 type Match = models.Match
 
 func getTestUsers() (*User, *User) {
-	var userA *User = models.NewUser("ajhende3", "ncsu", "Alec", "Henderson")
-	var userB *User = models.NewUser("alhunt6", "ncsu", "Alison", "Hunt")
+	userA, _ := models.NewUser("ajhende3", "ncsu", "Alec", "Henderson", "whatever@ncsu.edu")
+	userB, _ := models.NewUser("alhunt6", "ncsu", "Alison", "Hunt", "hello@skema.edu")
 
 	userA.ID = 1
 	userB.ID = 2
@@ -97,7 +97,7 @@ func TestChallengeValid(t *testing.T) {
 // test that a user cannot challenge/be challeneged with an active match
 func TestChallengeInvalidActive(t *testing.T) {
 	userA, userB := getTestUsersWithRanks(3, 4)
-	var userC *User = models.NewUser("jdallard", "ncsu", "Jason", "Allard")
+	userC, _ := models.NewUser("jdallard", "ncsu", "Jason", "Allard", "abcdefg@ecu.edu")
 	userC.ID = 3
 	userC.Rank = 5
 
@@ -208,6 +208,7 @@ func TestEncodeDecodeScore(t *testing.T) {
 	}
 }
 
+// test when a valid score is submitted
 func TestSubmitScoreValid(t *testing.T) {
 	userA, userB := getTestUsersWithRanks(3, 4)
 	match, _ := userA.Challenge(userB)
@@ -220,8 +221,14 @@ func TestSubmitScoreValid(t *testing.T) {
 	require.Equal(t, 6, a)
 	require.Equal(t, 4, b)
 
+	require.Equal(t, 1, userA.Wins)
+	require.Equal(t, 1, userB.Losses)
+
+	require.Zero(t, userA.Losses)
+	require.Zero(t, userB.Wins)
 }
 
+// test that invalid scores are rejected
 func TestSubmitScoreInvalid(t *testing.T) {
 	userA, userB := getTestUsersWithRanks(3, 4)
 	match, _ := userA.Challenge(userB)
@@ -233,5 +240,8 @@ func TestSubmitScoreInvalid(t *testing.T) {
 	require.Error(t, err)
 
 	err = match.SubmitScore(100, 6)
+	require.Error(t, err)
+
+	err = match.SubmitScore(6, 6)
 	require.Error(t, err)
 }
