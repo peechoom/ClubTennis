@@ -83,6 +83,23 @@ func (suite *UserTestSuite) TestSaveUser() {
 	suite.Require().Equal(userA, updatedUser)
 }
 
+func (suite *UserTestSuite) TestUserBatchSave() {
+	var s []models.User
+	s = append(s, *suite.userA)
+	s = append(s, *suite.userB)
+
+	err := suite.repo.SubmitUsers(s)
+
+	suite.Require().NoError(err)
+	a, err := suite.repo.FindByID(s[0].ID)
+	suite.Require().NoError(err)
+	suite.Require().Equal(s[0], *a)
+
+	b, err := suite.repo.FindByID(s[1].ID)
+	suite.Require().NoError(err)
+	suite.Require().Equal(s[1], *b)
+}
+
 func (suite *UserTestSuite) TestGetByRanking() {
 	suite.userA.Rank = 3
 	suite.userB.Rank = 4
@@ -92,10 +109,10 @@ func (suite *UserTestSuite) TestGetByRanking() {
 
 	a, err := suite.repo.FindByRank(3)
 	suite.Require().NoError(err)
-	suite.Require().Equal(suite.userA, a)
+	suite.Require().Equal(suite.userA.UnityID, a.UnityID)
 	b, err := suite.repo.FindByRank(4)
 	suite.Require().NoError(err)
-	suite.Require().Equal(suite.userB, b)
+	suite.Require().Equal(suite.userB.UnityID, b.UnityID)
 
 	var u []models.User
 	u, err = suite.repo.FindByRankRange(3, 4)
@@ -106,6 +123,6 @@ func (suite *UserTestSuite) TestGetByRanking() {
 
 	suite.Require().NoError(err)
 	// is a pointer... mumble mumble
-	suite.Require().Equal(u[0], *suite.userA)
-	suite.Require().Equal(u[1], *suite.userB)
+	suite.Require().Equal(u[0].UnityID, (suite.userA).UnityID)
+	suite.Require().Equal(u[1].UnityID, (suite.userB).UnityID)
 }

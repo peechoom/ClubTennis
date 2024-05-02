@@ -9,7 +9,7 @@ import (
 
 type User struct {
 	gorm.Model
-	UnityID     string   //ncsu unity id or skema id, should be unique
+	UnityID     string   `gorm:"index:,unique,sort:desc,type:btree,length:50"` //ncsu unity id or skema id, should be unique
 	Affiliation string   //ncsu.edu or skema.edu
 	FirstName   string   //users first name
 	LastName    string   //users last name
@@ -17,7 +17,7 @@ type User struct {
 	Rank        uint     `gorm:"index:,sort:desc"` //users rank in the ladder, should be unique
 	Wins        int      //how many wins the player has
 	Losses      int      //how many losses the player has
-	Matches     []*Match `gorm:"foreignKey:ID"` //list of matches the player is involved in
+	Matches     []*Match `gorm:"many2many:user_matches;"` //list of matches the player is involved in
 	isOfficer   bool     //whether or not this user is an officer
 }
 

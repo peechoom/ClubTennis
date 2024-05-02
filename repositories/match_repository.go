@@ -22,7 +22,7 @@ func NewMatchRepository(db *gorm.DB) *MatchRepository {
 // finds the match with the given ID
 func (r *MatchRepository) FindByID(ID uint) (*models.Match, error) {
 	var m Match
-	err := r.db.First(m, ID).Error
+	err := r.db.Preload("Players").First(&m, ID).Error
 
 	if err != nil {
 		return nil, err
@@ -48,9 +48,10 @@ func (r *MatchRepository) SaveMatch(m *Match) error {
 	return nil
 }
 
+// finds all matches marked as active
 func (r *MatchRepository) FindByActiveTrue() ([]Match, error) {
 	var matches []Match
-	err := r.db.Where(&Match{IsActive: true}).Find(&matches).Error
+	err := r.db.Preload("Players").Where(&Match{IsActive: true}).Find(&matches).Error
 
 	if err != nil {
 		return nil, err

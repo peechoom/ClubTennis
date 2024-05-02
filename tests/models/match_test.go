@@ -31,8 +31,8 @@ func getTestUsersWithRanks(rankA int, rankB int) (*User, *User) {
 func requireMatchContains(t *testing.T, match *Match, challenger *User, challenged *User) {
 	require.Equal(t, challenger.ID, match.ChallengerID)
 	require.Equal(t, challenged.ID, match.ChallengedID)
-	require.Equal(t, challenger.UnityID, match.Challenger.UnityID)
-	require.Equal(t, challenged.UnityID, match.Challenged.UnityID)
+	require.Equal(t, challenger.UnityID, match.Challenger().UnityID)
+	require.Equal(t, challenged.UnityID, match.Challenged().UnityID)
 }
 
 func TestNew(t *testing.T) {
