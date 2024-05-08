@@ -10,7 +10,7 @@ import (
 const TestDBName string = "ClubTennisTest"
 
 func GetTestDatabase() *gorm.DB {
-
+	//TODO make tempFS for this
 	//TODO hardcoded for now, move to file at some point
 	user := "root"
 	pass := "1521"

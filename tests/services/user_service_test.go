@@ -1,0 +1,135 @@
+package services_test
+
+import (
+	"ClubTennis/initializers"
+	"ClubTennis/models"
+	"ClubTennis/services"
+	"testing"
+
+	"github.com/stretchr/testify/suite"
+)
+
+type UserServiceTestSuite struct {
+	suite.Suite
+	s     *services.UserService
+	userA *models.User
+	userB *models.User
+	userC *models.User
+	userD *models.User
+	userE *models.User
+}
+
+// sets up before each test
+func (suite *UserServiceTestSuite) SetupTest() {
+	db := initializers.GetTestDatabase()
+	if db == nil {
+		panic("error in setup!")
+	}
+	db.Exec("DROP SCHEMA " + initializers.TestDBName + ";")
+
+	db = initializers.GetTestDatabase()
+	if db == nil {
+		panic("error in setup!")
+	}
+	err := db.AutoMigrate(models.User{}, models.Match{})
+	if err != nil {
+		panic(err)
+	}
+
+	suite.s = services.NewUserService(db)
+	suite.userA, _ = models.NewUser("shboil4", "ncsu", "Sam", "Boiland", "shboil4@ncsu.edu")
+	suite.userB, _ = models.NewUser("jbeno5", "ncsu", "James", "Benolli", "jbeno5@ncsu.edu")
+	suite.userC, _ = models.NewUser("pdiddy4", "ncsu", "Puff", "Daddy", "pdiddy@ncsu.edu")
+	suite.userD, _ = models.NewUser("jobitch2", "ncsu", "Joel", "Embitch", "jobitch@ncsu.edu")
+	suite.userE, _ = models.NewUser("myprince2", "ncsu", "Lebron", "James", "myprince2@ncsu.edu")
+
+	suite.userA.Rank = 1
+	suite.userB.Rank = 2
+	suite.userC.Rank = 3
+	suite.userD.Rank = 4
+	suite.userE.Rank = 5
+
+	suite.userA.Matches = make([]*models.Match, 0)
+	suite.userB.Matches = make([]*models.Match, 0)
+	suite.userC.Matches = make([]*models.Match, 0)
+	suite.userD.Matches = make([]*models.Match, 0)
+	suite.userE.Matches = make([]*models.Match, 0)
+
+}
+
+// neccessary for 'go test' to call all suite tests
+func TestRepositorySuite(t *testing.T) {
+	suite.Run(t, new(UserServiceTestSuite))
+}
+
+func (suite *UserServiceTestSuite) TestServiceSaveFind() {
+	suite.s.Save(suite.userA)
+	var u []models.User
+	u, err := suite.s.FindAll()
+	suite.Require().NoError(err)
+	suite.Assert().Len(u, 1)
+	suite.Require().Equal(suite.userA.UnityID, u[0].UnityID)
+
+	suite.s.Save(suite.userB, suite.userC, suite.userD, suite.userE)
+
+	u, err = suite.s.FindByRankRange(1, 5)
+	suite.Require().NoError(err)
+	suite.Assert().Len(u, 5)
+
+}
+
+func (suite *UserServiceTestSuite) TestServiceFindByUnityID() {
+	suite.s.Save(suite.userA)
+	suite.s.Save(suite.userB)
+	suite.s.Save(suite.userC)
+	suite.s.Save(suite.userD)
+	suite.s.Save(suite.userE)
+
+	var search *models.User
+	var err error
+
+	search, err = suite.s.FindByUnityID("shboil4")
+	suite.Require().NoError(err)
+	suite.Require().Equal(suite.userA, search)
+
+	search, err = suite.s.FindByUnityID("farthead1")
+	suite.Assert().NoError(err)
+	suite.Require().Nil(search)
+}
+
+func (suite *UserServiceTestSuite) TestLadderAlgo() {
+	suite.s.Save(suite.userA, suite.userB, suite.userC, suite.userD, suite.userE)
+	suite.userA, _ = suite.s.FindByUnityID(suite.userA.UnityID)
+	suite.userB, _ = suite.s.FindByUnityID(suite.userB.UnityID)
+	suite.userC, _ = suite.s.FindByUnityID(suite.userC.UnityID)
+	suite.userD, _ = suite.s.FindByUnityID(suite.userD.UnityID)
+	suite.userE, _ = suite.s.FindByUnityID(suite.userE.UnityID)
+
+	suite.s.AdjustLadder(suite.userC, suite.userA)
+
+	suite.userA, _ = suite.s.FindByUnityID(suite.userA.UnityID)
+	suite.userB, _ = suite.s.FindByUnityID(suite.userB.UnityID)
+	suite.userC, _ = suite.s.FindByUnityID(suite.userC.UnityID)
+	suite.userD, _ = suite.s.FindByUnityID(suite.userD.UnityID)
+	suite.userE, _ = suite.s.FindByUnityID(suite.userE.UnityID)
+
+	suite.Assert().Equal(uint(1), suite.userC.Rank)
+	suite.Assert().Equal(uint(2), suite.userA.Rank)
+	suite.Assert().Equal(uint(3), suite.userB.Rank)
+	suite.Assert().Equal(uint(4), suite.userD.Rank)
+	suite.Assert().Equal(uint(5), suite.userE.Rank)
+
+	suite.s.AdjustLadder(suite.userC, suite.userA)
+
+	suite.userA, _ = suite.s.FindByUnityID(suite.userA.UnityID)
+	suite.userB, _ = suite.s.FindByUnityID(suite.userB.UnityID)
+	suite.userC, _ = suite.s.FindByUnityID(suite.userC.UnityID)
+	suite.userD, _ = suite.s.FindByUnityID(suite.userD.UnityID)
+	suite.userE, _ = suite.s.FindByUnityID(suite.userE.UnityID)
+
+	suite.Assert().Equal(uint(1), suite.userC.Rank)
+	suite.Assert().Equal(uint(2), suite.userA.Rank)
+	suite.Assert().Equal(uint(3), suite.userB.Rank)
+	suite.Assert().Equal(uint(4), suite.userD.Rank)
+	suite.Assert().Equal(uint(5), suite.userE.Rank)
+}

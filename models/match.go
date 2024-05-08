@@ -9,9 +9,9 @@ import (
 )
 
 type Match struct {
-	gorm.Model
-	ChallengerID uint
-	ChallengedID uint
+	gorm.Model           //DO NOT touch the ID, the database handles this
+	ChallengerID uint    //ID of player X who challenged player Y to this match
+	ChallengedID uint    //ID of player Y who challenged player X to this match
 	Players      []*User `gorm:"many2many:user_matches;"`
 	Score        uint8   `gorm:"default:0"`
 	IsActive     bool
@@ -22,6 +22,9 @@ const SamePlayerCooldownDays int = 14
 
 // A player may not challenge the same player within this many hours
 const SamePlayerCooldownHours int = 24 * SamePlayerCooldownDays
+
+// winners score
+const WinningScore uint = 6
 
 func (m *Match) Challenger() (u *User) {
 	for _, usr := range m.Players {
@@ -38,6 +41,19 @@ func (m *Match) Challenged() (u *User) {
 		}
 	}
 	return nil
+}
+
+// returns the winner's id and wether or not the challenger won
+func (m *Match) Winner() (uint, bool) {
+	if m.Score == 0 {
+		return 0, false
+	}
+
+	a, _ := DecodeScore(m.Score)
+	if a == int(WinningScore) {
+		return m.ChallengerID, true
+	}
+	return m.ChallengedID, false
 }
 
 // constructor for a new match
@@ -115,7 +131,7 @@ func (challenger *User) IsWithinRangeOf(challenged *User) bool {
 // returns true if the challenger has challenged the challenged player  within the last 14 days.
 func (challenger *User) HasRecentlyChallenged(challenged *User) bool {
 	for _, match := range challenger.Matches {
-		if match.Challenged().UnityID == challenged.UnityID && (match.IsActive || time.Since(match.CreatedAt).Hours() < float64(SamePlayerCooldownHours)) {
+		if match.ChallengedID == challenged.ID && (match.IsActive || time.Since(match.CreatedAt).Hours() < float64(SamePlayerCooldownHours)) {
 			return true
 		}
 	}

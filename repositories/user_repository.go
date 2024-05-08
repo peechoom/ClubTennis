@@ -18,9 +18,9 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 // finds the User with the given ID
 func (r *UserRepository) FindByID(ID uint) (*models.User, error) {
 	var u models.User
-	err := r.db.First(&u, ID).Error
+	err := r.db.Preload("Matches").First(&u, ID).Error
 
-	if err != nil {
+	if err != nil || u.ID != ID || u.UnityID == "" {
 		return nil, err
 	}
 	return &u, nil
@@ -52,6 +52,17 @@ func (r *UserRepository) SaveUser(u *models.User) error {
 	return nil
 }
 
+// updates several user's info in the db. must be a slice of users, NOT user pointers
+func (r *UserRepository) SaveUsers(u []models.User) (linesUpdated int64, err error) {
+	t := r.db.Save(&u)
+	err = t.Error
+	linesUpdated = t.RowsAffected
+	if err != nil {
+		return linesUpdated, err
+	}
+	return linesUpdated, err
+}
+
 // finds the user with the given rank
 func (r *UserRepository) FindByRank(Rank uint) (*models.User, error) {
 	var u models.User
@@ -76,4 +87,19 @@ func (r *UserRepository) FindByRankRange(LoRank uint, HiRank uint) ([]models.Use
 		return nil, err
 	}
 	return u, nil
+}
+
+func (r *UserRepository) FindAll() (u []models.User, err error) {
+	err = r.db.Preload("Matches").Find(&u).Error
+	return
+}
+
+func (r *UserRepository) FindByUnityID(s string) (u *models.User, err error) {
+	u = new(models.User)
+	err = r.db.Preload("Matches").Where(&models.User{UnityID: s}).Find(u).Error
+
+	if u.UnityID != s {
+		return nil, nil
+	}
+	return
 }

@@ -125,4 +125,5 @@ func (suite *UserTestSuite) TestGetByRanking() {
 	// is a pointer... mumble mumble
 	suite.Require().Equal(u[0].UnityID, (suite.userA).UnityID)
 	suite.Require().Equal(u[1].UnityID, (suite.userB).UnityID)
+
 }
