@@ -37,6 +37,8 @@ func (suite *UserTestSuite) SetupTest() {
 	suite.repo = repositories.NewUserRepository(db)
 	suite.userA, _ = models.NewUser("bdoller4", "ncsu", "bowie", "doliver", "bdoller4@ncsu.edu")
 	suite.userB, _ = models.NewUser("qbingus5", "ncsu", "quevin", "bingus", "qbingus5@ncsu.edu")
+	suite.userA.Matches = make([]*models.Match, 0)
+	suite.userB.Matches = make([]*models.Match, 0)
 
 	if suite.repo == nil || suite.userA == nil || suite.userB == nil {
 		panic("error in setup!")
