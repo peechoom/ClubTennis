@@ -13,6 +13,9 @@ type MatchService struct {
 	userRepo *repositories.UserRepository
 }
 
+// how long we should consider "recent matches"
+const recentMatchesDays = 7
+
 type Match = models.Match
 
 func NewMatchService(db *gorm.DB) *MatchService {
@@ -77,3 +80,34 @@ func (ms *MatchService) FindByChallengerID(ID uint) (m []Match, err error) {
 	m, err = ms.repo.FindByChallengerID(ID)
 	return
 }
+
+// returns all records in the database
+func (ms *MatchService) FindAll() (m []Match, err error) {
+	m, err = ms.repo.FindAll()
+	return
+}
+
+// returns the match with the given id
+func (ms *MatchService) FindByID(ID uint) (m *Match, err error) {
+	m, err = ms.repo.FindByID(ID)
+	return
+}
+
+// returns all matches that meet the query
+func (ms *MatchService) FindByPlayerIDAndActive(active bool, IDs ...uint) (m []Match, err error) {
+	if len(IDs) == 0 {
+		return nil, nil
+	}
+	m, err = ms.repo.FindByPlayerIDAndActive(active, IDs...)
+	return
+}
+
+func (ms *MatchService) FindByActive(active bool) (m []Match, err error) {
+	m, err = ms.repo.FindByActive(active)
+	return
+}
+
+// TODO implement this
+// func (ms *MatchService) FindAllRecentMatches(timespan int) (m []Match, err error) {
+// 	m, err =
+// }

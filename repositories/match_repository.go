@@ -28,6 +28,9 @@ func (r *MatchRepository) FindByID(ID uint) (*models.Match, error) {
 	if err != nil {
 		return nil, err
 	}
+	if m.ID == 0 {
+		return nil, nil
+	}
 	return &m, nil
 }
 
@@ -63,9 +66,9 @@ func (r *MatchRepository) SaveMatch(m *Match) error {
 }
 
 // finds all matches marked as active
-func (r *MatchRepository) FindByActiveTrue() ([]Match, error) {
+func (r *MatchRepository) FindByActive(active bool) ([]Match, error) {
 	var matches []Match
-	err := r.db.Preload("Players").Where(&Match{IsActive: true}).Find(&matches).Error
+	err := r.db.Preload("Players").Where("`is_active` = ?", active).Find(&matches).Error
 
 	if err != nil {
 		return nil, err
@@ -96,6 +99,14 @@ func (r *MatchRepository) FindByPlayerIDs(IDs ...uint) (m []Match, err error) {
 		Where("`challenger_id` IN ?", IDs).
 		Or("`challenged_id` IN ?", IDs).
 		Find(&m).Error
+	return
+}
+
+func (r *MatchRepository) FindByPlayerIDAndActive(isActive bool, IDs ...uint) (m []Match, err error) {
+	err = r.db.Preload("Players").
+		Where("`challenger_id` IN ?", IDs).
+		Or("`challenged_id` IN ?", IDs).
+		Find(&m, Match{IsActive: isActive}).Error
 	return
 }
 

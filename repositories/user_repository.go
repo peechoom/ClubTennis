@@ -28,6 +28,14 @@ func (r *UserRepository) FindByID(ID uint) (*models.User, error) {
 
 // submits a new User to the DB
 func (r *UserRepository) SubmitUser(u *models.User) error {
+	var ranks []uint
+	r.db.Model(&models.User{}).Order("`rank` desc").Pluck("`rank`", &ranks).Limit(1)
+	if len(ranks) > 0 {
+		u.Rank = ranks[0] + 1
+	} else {
+		u.Rank = 1
+	}
+
 	err := r.db.Create(u).Error
 	if err != nil {
 		return err
@@ -46,10 +54,7 @@ func (r *UserRepository) SubmitUsers(u []models.User) error {
 
 // updates a user's info in the DB
 func (r *UserRepository) SaveUser(u *models.User) error {
-	if err := r.db.Save(u).Error; err != nil {
-		return err
-	}
-	return nil
+	return r.db.Save(u).Error
 }
 
 // updates several user's info in the db. must be a slice of users, NOT user pointers
@@ -87,6 +92,14 @@ func (r *UserRepository) FindByRankRange(LoRank uint, HiRank uint) ([]models.Use
 		return nil, err
 	}
 	return u, nil
+}
+
+func (r *UserRepository) DeleteByID(id uint) error {
+	return r.db.Unscoped().Delete(&models.User{}, id).Error
+}
+
+func (r *UserRepository) DeleteByUnityID(unityID string) error {
+	return r.db.Unscoped().Where(models.User{UnityID: unityID}).Delete(&models.User{}).Error
 }
 
 func (r *UserRepository) FindAll() (u []models.User, err error) {

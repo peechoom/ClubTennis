@@ -129,3 +129,21 @@ func (suite *UserTestSuite) TestGetByRanking() {
 	suite.Require().Equal(u[1].UnityID, (suite.userB).UnityID)
 
 }
+
+func (suite *UserTestSuite) TestSubmitUser() {
+	err := suite.repo.SubmitUser(suite.userA)
+	suite.Require().NoError(err)
+	ua, _ := suite.repo.FindByUnityID(suite.userA.UnityID)
+	ua.Rank = 1
+	suite.repo.SaveUser(ua)
+
+	err = suite.repo.SubmitUser(suite.userB)
+	suite.Require().NoError(err)
+	ub, _ := suite.repo.FindByUnityID(suite.userB.UnityID)
+	suite.Require().Equal(uint(2), ub.Rank)
+
+	uc, _ := models.NewOfficer("kwest4", "ncsu", "Kanye", "West", "kwest4@ncsu.edu")
+	err = suite.repo.SubmitUser(uc)
+	suite.Require().Equal(uint(3), uc.Rank)
+
+}

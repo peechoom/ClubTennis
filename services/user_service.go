@@ -23,6 +23,9 @@ func (s *UserService) Save(u ...*User) error {
 		return nil
 	}
 	if len(u) == 1 {
+		if u[0].ID == 0 {
+			return s.repo.SubmitUser(u[0])
+		}
 		return s.repo.SaveUser(u[0])
 	}
 	return s.saveMany(u)
@@ -68,6 +71,15 @@ func (s *UserService) FindByUnityID(unityID string) (u *User, err error) {
 // should be used mostly for testing. returns all users in the db
 func (s *UserService) FindAll() (u []User, err error) {
 	return s.repo.FindAll()
+}
+
+// deletes the user with the given numeric id
+func (s *UserService) DeleteByID(id uint) error {
+	return s.repo.DeleteByID(id)
+}
+
+func (s *UserService) DeleteByUnityID(unityID string) error {
+	return s.repo.DeleteByUnityID(unityID)
 }
 
 // algorithm for adjusting the ladder.
