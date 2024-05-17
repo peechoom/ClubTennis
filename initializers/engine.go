@@ -1,19 +1,20 @@
 package initializers
 
 import (
+	"ClubTennis/config"
 	"ClubTennis/routes"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func GetEngine() *gin.Engine {
+func GetEngine(c *config.Config) *gin.Engine {
 	e := gin.Default()
 
 	//TODO make absolute path an env variable that we fetch
 	e = e.Delims("{[{", "}]}")
 	e.LoadHTMLGlob("templates/*.html")
-	db := GetDatabase()
+	db := GetDatabase(c)
 	setRoutings(e, db)
 
 	return e
