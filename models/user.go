@@ -13,8 +13,8 @@ type User struct {
 	Affiliation string   //ncsu.edu or skema.edu
 	FirstName   string   //users first name
 	LastName    string   //users last name
-	Email       string   //users e-mail address
-	Rank        uint     `gorm:"index:,sort:desc"` //users rank in the ladder, should be unique
+	Email       string   `gorm:"index:,unique,sort:desc,type:btree,length:100"` //users e-mail address
+	Rank        uint     `gorm:"index:,sort:desc"`                              //users rank in the ladder, should be unique
 	Wins        int      //how many wins the player has
 	Losses      int      //how many losses the player has
 	Matches     []*Match `gorm:"many2many:user_matches;constraint:OnDelete:CASCADE"` //list of matches the player is involved in
@@ -34,7 +34,9 @@ func NewUser(UnityID string, Affiliation string, FirstName string, LastName stri
 	if !isValidEmail(Email) {
 		return nil, errors.New("email not valid")
 	}
-
+	if len(UnityID) < 50 {
+		return nil, errors.New("unity id too long")
+	}
 	u := new(User)
 
 	u.UnityID = UnityID
@@ -47,7 +49,7 @@ func NewUser(UnityID string, Affiliation string, FirstName string, LastName stri
 }
 
 func isValidEmail(email string) bool {
-	return emailRegex.MatchString(email)
+	return emailRegex.MatchString(email) && len(email) < 100
 }
 
 /*

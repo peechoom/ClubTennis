@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<script src="https://accounts.google.com/gsi/client" async></script>
 
 <head>
     <meta charset="UTF-8">
@@ -38,7 +39,22 @@
                 <div class="offcanvas-body">
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            <a class="nav-link" href="/signin">Sign In</a>
+                            <div id="g_id_onload"
+                                data-client_id="ClubTennis Login"
+                                data-context="signin"
+                                data-ux_mode="popup"
+                                data-login_uri="/auth/login"
+                                data-auto_prompt="false">
+                            </div>
+
+                            <div class="g_id_signin"
+                                data-type="standard"
+                                data-shape="pill"
+                                data-theme="outline"
+                                data-text="signin_with"
+                                data-size="large"
+                                data-logo_alignment="left">
+                            </div>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/about">About</a>

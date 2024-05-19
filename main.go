@@ -7,7 +7,7 @@ import (
 
 func main() {
 	config, err := config.LoadConfig("config/config.json")
-	if err != nil {
+	if err != nil || config == nil {
 		panic("fatal: could not load config")
 	}
 	r := initializers.GetEngine(config)

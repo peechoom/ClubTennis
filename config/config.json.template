@@ -16,6 +16,7 @@
         "pass": ""
     },
     "google_oauth": {
+        "redirect_url": "",
         "client_id": "",
         "client_secret": ""
     }

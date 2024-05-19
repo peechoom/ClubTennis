@@ -94,6 +94,13 @@ func (r *UserRepository) FindByRankRange(LoRank uint, HiRank uint) ([]models.Use
 	return u, nil
 }
 
+// returns the user with the given email
+func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
+	var u models.User
+	err := r.db.Where(&models.User{Email: email}).Take(&u).Error
+	return &u, err
+}
+
 func (r *UserRepository) DeleteByID(id uint) error {
 	return r.db.Unscoped().Delete(&models.User{}, id).Error
 }

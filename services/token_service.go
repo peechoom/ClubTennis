@@ -70,41 +70,41 @@ func DefaultTokenService(repo *repositories.TokenRepository) *TokenService {
 }
 
 // generates new refresh and id tokens for the user once they log in, used for singing in
-func (ts *TokenService) GetNewTokenPair(u *User, prevTokenID string) (*models.TokenPair, error) {
+func (ts *TokenService) GetNewTokenPair(userID uint, prevTokenID string) (*models.TokenPair, error) {
 	var err error
 	var idString string
 	var refresh *refreshTokenData
-	userID := strconv.FormatUint(uint64(u.ID), 10)
+	userIDString := strconv.FormatUint(uint64(userID), 10)
 
 	if prevTokenID != "" {
-		err := ts.repo.DeleteRefreshToken(userID, prevTokenID)
+		err := ts.repo.DeleteRefreshToken(userIDString, prevTokenID)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	idString, err = generateIDToken(u, ts.PrivateKey, ts.IDTokenLifetime)
+	idString, err = generateIDToken(userID, ts.PrivateKey, ts.IDTokenLifetime)
 	if err != nil {
 		return nil, err
 	}
 
-	refresh, err = generateRefreshToken(u, ts.RefreshKey, ts.RefreshTokenLifetime)
+	refresh, err = generateRefreshToken(userID, ts.RefreshKey, ts.RefreshTokenLifetime)
 	if err != nil {
 		return nil, err
 	}
 
-	if userID == "" {
+	if userIDString == "" {
 		return nil, errors.New("bruh, the uhhhh string conversion failed. how did you manage that???")
 	}
 
-	err = ts.repo.SetRefreshToken(userID, refresh.ID.String(), refresh.ExpiresIn)
+	err = ts.repo.SetRefreshToken(userIDString, refresh.ID.String(), refresh.ExpiresIn)
 	if err != nil {
 		return nil, err
 	}
 
 	return &models.TokenPair{
 		IDToken:      models.IDToken{SS: idString},
-		RefreshToken: models.RefreshToken{ID: refresh.ID, UserID: u.ID, SS: refresh.SS},
+		RefreshToken: models.RefreshToken{ID: refresh.ID, UserID: userID, SS: refresh.SS},
 	}, nil
 }
 

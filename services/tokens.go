@@ -30,10 +30,10 @@ type refreshTokenData struct {
 }
 
 // returns the signed string representing the rs256-signed jwt token given the server's rsa secret and nanoseconds until expiry
-func generateIDToken(u *User, key *rsa.PrivateKey, expires int64) (string, error) {
+func generateIDToken(u uint, key *rsa.PrivateKey, expires int64) (string, error) {
 	currentTime := time.Now()
 	claims := idTokenClaims{
-		u.ID,
+		u,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(currentTime.Add(time.Duration(expires) * time.Second)),
 			IssuedAt:  jwt.NewNumericDate(currentTime),
@@ -51,7 +51,7 @@ func generateIDToken(u *User, key *rsa.PrivateKey, expires int64) (string, error
 }
 
 // generates a new refresh token using the secret symetric key and nanoseconds until expiry
-func generateRefreshToken(u *User, key []byte, expires int64) (*refreshTokenData, error) {
+func generateRefreshToken(u uint, key []byte, expires int64) (*refreshTokenData, error) {
 	currentTime := time.Now()
 	exp := currentTime.Add(time.Duration(expires) * time.Second)
 
@@ -61,7 +61,7 @@ func generateRefreshToken(u *User, key []byte, expires int64) (*refreshTokenData
 	}
 
 	claims := refreshTokenClaims{
-		u.ID,
+		u,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(exp),
 			IssuedAt:  jwt.NewNumericDate(currentTime),

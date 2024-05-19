@@ -17,7 +17,7 @@ func GetDatabase(c *config.Config) *gorm.DB {
 	user := c.Database.User
 	pass := c.Database.Password
 	host := c.Database.Host
-	port := strconv.FormatInt(int64(c.Server.Port), 10)
+	port := strconv.FormatInt(int64(c.Database.Port), 10)
 	dbname := c.Database.DBName
 
 	createDBDsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/", user, pass, host, port)

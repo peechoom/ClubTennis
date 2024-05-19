@@ -6,8 +6,8 @@ import "github.com/google/uuid"
 // saved to in-memory db
 type RefreshToken struct {
 	ID     uuid.UUID `json:"-"`
-	UserID uint
-	SS     string `json:"refreshToken"`
+	UserID uint      `json:"-"`
+	SS     string    `json:"refreshToken"`
 }
 
 // ID token that the user uses to identify itself. not saved.

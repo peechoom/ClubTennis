@@ -50,7 +50,7 @@ func TestTokenTestSuite(t *testing.T) {
 }
 
 func (suite *TokenTestSuite) TestGetNewTokenPair() {
-	tp, err := suite.ts.GetNewTokenPair(suite.userA, "")
+	tp, err := suite.ts.GetNewTokenPair(suite.userA.ID, "")
 	suite.Require().NoError(err)
 	suite.Assert().NotNil(tp)
 	userID, err := suite.ts.ValidateIDToken(tp.IDToken.SS)
@@ -61,7 +61,7 @@ func (suite *TokenTestSuite) TestGetNewTokenPair() {
 	suite.Require().NoError(err)
 	suite.Require().Equal(*refreshToken, tp.RefreshToken)
 
-	tp, err = suite.ts.GetNewTokenPair(suite.userA, refreshToken.ID.String())
+	tp, err = suite.ts.GetNewTokenPair(suite.userA.ID, refreshToken.ID.String())
 	suite.Require().NoError(err)
 	suite.Assert().NotNil(tp)
 
@@ -81,7 +81,7 @@ func (suite *TokenTestSuite) TestExpiredToken() {
 	suite.ts = services.NewTokenService(repositories.NewTokenRepository(initializers.GetTestClient(suite.c)),
 		priv, priv.Public().(*rsa.PublicKey), sym, 1, 2)
 
-	tp, err := suite.ts.GetNewTokenPair(suite.userA, "")
+	tp, err := suite.ts.GetNewTokenPair(suite.userA.ID, "")
 	suite.Require().NoError(err)
 	suite.Assert().NotNil(tp)
 	userID, err := suite.ts.ValidateIDToken(tp.IDToken.SS)
@@ -99,7 +99,7 @@ func (suite *TokenTestSuite) TestExpiredToken() {
 
 	time.Sleep(time.Second)
 	//this panics instead of just returning an error when reassigning tp ...weird
-	badPair, err := suite.ts.GetNewTokenPair(suite.userA, refreshToken.ID.String())
+	badPair, err := suite.ts.GetNewTokenPair(suite.userA.ID, refreshToken.ID.String())
 	suite.Require().Error(err)
 	suite.Require().Nil(badPair)
 
@@ -110,14 +110,14 @@ func (suite *TokenTestSuite) TestExpiredToken() {
 }
 
 func (suite *TokenTestSuite) TestDeleteAllTokens() {
-	tp1, _ := suite.ts.GetNewTokenPair(suite.userA, "")
-	tp2, _ := suite.ts.GetNewTokenPair(suite.userA, "")
+	tp1, _ := suite.ts.GetNewTokenPair(suite.userA.ID, "")
+	tp2, _ := suite.ts.GetNewTokenPair(suite.userA.ID, "")
 
 	suite.Assert().NoError(suite.ts.DeleteAllUserTokens(suite.userA))
-	_, err := suite.ts.GetNewTokenPair(suite.userA, tp1.RefreshToken.ID.String())
+	_, err := suite.ts.GetNewTokenPair(suite.userA.ID, tp1.RefreshToken.ID.String())
 	suite.Require().Error(err)
 
-	_, err = suite.ts.GetNewTokenPair(suite.userA, tp2.RefreshToken.ID.String())
+	_, err = suite.ts.GetNewTokenPair(suite.userA.ID, tp2.RefreshToken.ID.String())
 	suite.Require().Error(err)
 
 	suite.Assert().NoError(suite.ts.DeleteAllUserTokens(suite.userA))

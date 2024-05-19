@@ -51,21 +51,27 @@ func (s *UserService) FindByRankRange(a uint, b uint) (u []User, err error) {
 }
 
 // returns the user with the given rank
-func (s *UserService) FindByRank(r uint) (u *User, err error) {
-	u, err = s.repo.FindByRank(r)
-	return
+func (s *UserService) FindByRank(r uint) (*User, error) {
+	return s.repo.FindByRank(r)
 }
 
 // returns the user with the given ID
-func (s *UserService) FindByID(r uint) (u *User, err error) {
-	u, err = s.repo.FindByID(r)
-	return
+func (s *UserService) FindByID(r uint) (*User, error) {
+	return s.repo.FindByID(r)
 }
 
 // returns the user with the given unity ID
-func (s *UserService) FindByUnityID(unityID string) (u *User, err error) {
-	u, err = s.repo.FindByUnityID(unityID)
-	return
+func (s *UserService) FindByUnityID(unityID string) (*User, error) {
+	return s.repo.FindByUnityID(unityID)
+}
+
+// returns the user with the given email. It is considered an error if no match is found
+func (s *UserService) FindByEmail(email string) (*User, error) {
+	u, err := s.repo.FindByEmail(email)
+	if err != nil || u.ID == 0 {
+		return nil, err
+	}
+	return u, nil
 }
 
 // should be used mostly for testing. returns all users in the db
