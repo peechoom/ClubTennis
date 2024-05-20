@@ -34,7 +34,7 @@ func NewUser(UnityID string, Affiliation string, FirstName string, LastName stri
 	if !isValidEmail(Email) {
 		return nil, errors.New("email not valid")
 	}
-	if len(UnityID) < 50 {
+	if len(UnityID) > 50 {
 		return nil, errors.New("unity id too long")
 	}
 	u := new(User)

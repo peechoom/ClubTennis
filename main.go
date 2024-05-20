@@ -6,11 +6,11 @@ import (
 )
 
 func main() {
-	config, err := config.LoadConfig("config/config.json")
-	if err != nil || config == nil {
+	err := config.LoadConfig("config/.env")
+	if err != nil {
 		panic("fatal: could not load config")
 	}
-	r := initializers.GetEngine(config)
+	r := initializers.GetEngine()
 
 	r.Run(":8080")
 }

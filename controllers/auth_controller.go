@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"ClubTennis/config"
 	"ClubTennis/services"
 	"errors"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mazen160/go-random"
@@ -22,22 +22,22 @@ type AuthController struct {
 	stateString       string
 }
 
-func NewAuthController(c config.Config, userService *services.UserService) *AuthController {
+func NewAuthController(userService *services.UserService) *AuthController {
 	statestr, err := random.String(64)
 	if err != nil {
 		return nil
 	}
 	return &AuthController{
 		googleOauthConfig: &oauth2.Config{
-			RedirectURL:  c.GoogleOauth.RedirectURL,
-			ClientID:     c.GoogleOauth.ClientID,
-			ClientSecret: c.GoogleOauth.ClientSecret,
+			RedirectURL:  os.Getenv("GOOGLE_OAUTH_REDIRECT_URL"),
+			ClientID:     os.Getenv("GOOGLE_OAUTH_CLIENT_ID"),
+			ClientSecret: os.Getenv("GOOGLE_OAUTH_CLIENT_SECRET"),
 			Endpoint:     google.Endpoint,
 			Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email"},
 		},
 		stateString: statestr,
 		userService: userService,
-		host:        c.Server.Host,
+		host:        os.Getenv("SERVER_HOST"),
 	}
 }
 
@@ -50,7 +50,20 @@ func (a *AuthController) Login(c *gin.Context) {
 	c.Redirect(http.StatusTemporaryRedirect, a.googleOauthConfig.AuthCodeURL(a.stateString))
 }
 
-//TODO add logout
+func (a *AuthController) Logout(c *gin.Context) {
+	userID := c.GetUint("user_id")
+	tokenStr, err := c.Cookie("refresh_token")
+	if err != nil {
+		c.Redirect(http.StatusPermanentRedirect, "/")
+		return
+	}
+	token, err := a.tokenService.ValidateRefreshToken(tokenStr)
+
+	if userID != 0 && err != nil {
+		a.tokenService.DeleteRefreshToken(userID, token.ID.String())
+	}
+	c.Redirect(http.StatusPermanentRedirect, "/")
+}
 
 /*
 	GET /auth/callback

@@ -97,10 +97,7 @@ func (ts *TokenService) GetNewTokenPair(userID uint, prevTokenID string) (*model
 		return nil, errors.New("bruh, the uhhhh string conversion failed. how did you manage that???")
 	}
 
-	err = ts.repo.SetRefreshToken(userIDString, refresh.ID.String(), refresh.ExpiresIn)
-	if err != nil {
-		return nil, err
-	}
+	ts.repo.SetRefreshToken(userIDString, refresh.ID.String(), refresh.ExpiresIn)
 
 	return &models.TokenPair{
 		IDToken:      models.IDToken{SS: idString},
@@ -147,6 +144,7 @@ func (ts *TokenService) ValidateRefreshToken(tokenString string) (*models.Refres
 	}, nil
 }
 
-func (ts *TokenService) DeleteAllUserTokens(u *User) error {
-	return ts.repo.DeleteUserRefreshTokens(strconv.FormatUint(uint64(u.ID), 10))
+func (ts *TokenService) DeleteRefreshToken(userID uint, tokenID string) {
+	str := strconv.FormatUint(uint64(userID), 10)
+	ts.repo.DeleteRefreshToken(str, tokenID)
 }

@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"ClubTennis/config"
 	"ClubTennis/controllers"
 	"ClubTennis/services"
 
@@ -10,9 +9,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetAuthRoutes(c config.Config, engine *gin.Engine, db *gorm.DB, client *redis.Client) {
+func SetAuthRoutes(engine *gin.Engine, db *gorm.DB, client *redis.Client) {
 	authGroup := engine.Group("/auth")
-	var authCtrl controllers.AuthController = *controllers.NewAuthController(c, services.NewUserService(db))
+	var authCtrl controllers.AuthController = *controllers.NewAuthController(services.NewUserService(db))
 
 	{
 		authGroup.Use( /*middleware*/ )

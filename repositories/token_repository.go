@@ -4,26 +4,21 @@ import (
 	"errors"
 	"fmt"
 	"time"
-
-	"github.com/go-redis/redis"
 )
 
 type TokenRepository struct {
-	Redis *redis.Client
+	db *TTLRbTree
 }
 
-func NewTokenRepository(c *redis.Client) *TokenRepository {
-	return &TokenRepository{Redis: c}
+func NewTokenRepository() *TokenRepository {
+	return &TokenRepository{db: NewTTLRbTree()}
 }
 
 // sets a users refresh token
-func (repo *TokenRepository) SetRefreshToken(userID string, tokenID string, expiresIn time.Duration) error {
+func (repo *TokenRepository) SetRefreshToken(userID string, tokenID string, expiresIn time.Duration) {
 	key := fmt.Sprintf("%s:%s", userID, tokenID)
-	err := repo.Redis.Set(key, 0, expiresIn).Err()
-	if err != nil {
-		return err
-	}
-	return nil
+	repo.db.Set(key, expiresIn)
+	go repo.db.Clean()
 }
 
 // deletes the provided refresh token ID from the redis db.
@@ -32,39 +27,11 @@ func (repo *TokenRepository) SetRefreshToken(userID string, tokenID string, expi
 func (repo *TokenRepository) DeleteRefreshToken(userID string, tokenID string) error {
 	key := fmt.Sprintf("%s:%s", userID, tokenID)
 
-	result := repo.Redis.Del(key)
+	ok := repo.db.Del(key)
+	go repo.db.Clean()
 
-	if result.Err() != nil {
-		return result.Err()
-	}
-
-	if result.Val() < 1 {
-		return errors.New("invalid refresh token")
-	}
-
-	return nil
-}
-
-// deletes all of a users refresh tokens
-func (repo *TokenRepository) DeleteUserRefreshTokens(userID string) error {
-	pattern := fmt.Sprintf("%s*", userID)
-
-	it := repo.Redis.Scan(0, pattern, 10).Iterator()
-	var fails bool = false
-
-	for it.Next() {
-		err := repo.Redis.Del(it.Val()).Err()
-		if err != nil {
-			fails = true
-		}
-	}
-
-	if it.Err() != nil {
-		return it.Err()
-	}
-
-	if fails {
-		return errors.New("one or more user ids not deleted")
+	if !ok {
+		return errors.New("user not found")
 	}
 	return nil
 }

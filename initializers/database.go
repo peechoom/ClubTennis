@@ -1,10 +1,9 @@
 package initializers
 
 import (
-	"ClubTennis/config"
 	"ClubTennis/models"
 	"fmt"
-	"strconv"
+	"os"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -13,12 +12,12 @@ import (
 const TestDBName string = "ClubTennisTest"
 const DBName string = "ClubTennis"
 
-func GetDatabase(c *config.Config) *gorm.DB {
-	user := c.Database.User
-	pass := c.Database.Password
-	host := c.Database.Host
-	port := strconv.FormatInt(int64(c.Database.Port), 10)
-	dbname := c.Database.DBName
+func GetDatabase() *gorm.DB {
+	user := os.Getenv("DATABASE_USER")
+	pass := os.Getenv("DATABASE_PASS")
+	host := os.Getenv("DATABASE_HOST")
+	port := os.Getenv("DATABASE_PORT")
+	dbname := os.Getenv("DATABASE_DBNAME")
 
 	createDBDsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/", user, pass, host, port)
 	database, err := gorm.Open(mysql.Open(createDBDsn), &gorm.Config{})

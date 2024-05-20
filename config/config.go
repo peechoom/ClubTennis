@@ -1,51 +1,15 @@
 package config
 
 import (
-	"encoding/json"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
-type Config struct {
-	Server struct {
-		Host string `json:"host"`
-		Port int    `json:"port"`
-	} `json:"server"`
-
-	Database struct {
-		User     string `json:"user"`
-		Password string `json:"pass"`
-		Host     string `json:"host"`
-		Port     int    `json:"port"`
-		DBName   string `json:"dbname"`
-	} `json:"database"`
-
-	Redis struct {
-		Host string `json:"host"`
-		Port int    `json:"port"`
-		Pass string `json:"pass"`
-	} `json:"redis"`
-
-	GoogleOauth struct {
-		ClientID     string `json:"client_id"`
-		ClientSecret string `json:"client_secret"`
-		RedirectURL  string `json:"redirect_url"`
-	} `json:"google_oauth"`
-}
-
-func LoadConfig(filename string) (*Config, error) {
-	var config Config
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
+func LoadConfig(filename string) error {
+	cloud := os.Getenv("CLOUD_INSTANCE")
+	if len(cloud) == 0 || cloud == "false" {
+		return godotenv.Load(filename)
 	}
-	defer file.Close()
-
-	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&config)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &config, nil
+	return nil
 }

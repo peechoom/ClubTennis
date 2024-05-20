@@ -2,7 +2,6 @@ package services_test
 
 import (
 	"ClubTennis/config"
-	"ClubTennis/initializers"
 	"ClubTennis/models"
 	"ClubTennis/repositories"
 	"ClubTennis/services"
@@ -18,23 +17,17 @@ import (
 type TokenTestSuite struct {
 	suite.Suite
 	ts    *services.TokenService
-	c     *config.Config
 	userA *models.User
 	userB *models.User
 }
 
 func (suite *TokenTestSuite) SetupTest() {
-	var err error
-	suite.c, err = config.LoadConfig("/home/alec/go/src/ClubTennis/config/config.json")
-	if err != nil || suite.c == nil {
+	err := config.LoadConfig("/home/alec/go/src/ClubTennis/config/.env")
+	if err != nil {
 		panic(err.Error())
 	}
-	client := initializers.GetTestClient(suite.c)
-	if client == nil {
-		panic("couldnt get client")
-	}
-	client.FlushAll()
-	suite.ts = services.DefaultTokenService(repositories.NewTokenRepository(client))
+
+	suite.ts = services.DefaultTokenService(repositories.NewTokenRepository())
 	suite.userA, _ = models.NewOfficer("kwest4", "ncsu", "Kanye", "West", "kwest4@ncsu.edu")
 	suite.userA.ID = 20
 	suite.userB, _ = models.NewUser("cwatts3", "unc", "Chris", "Watts", "cwatts3@unc.edu") //yes he went to UNC
@@ -78,7 +71,7 @@ func (suite *TokenTestSuite) TestExpiredToken() {
 	priv, _ := rsa.GenerateKey(rand.Reader, 2048)
 	sym, _ := random.Bytes(64)
 
-	suite.ts = services.NewTokenService(repositories.NewTokenRepository(initializers.GetTestClient(suite.c)),
+	suite.ts = services.NewTokenService(repositories.NewTokenRepository(),
 		priv, priv.Public().(*rsa.PublicKey), sym, 1, 2)
 
 	tp, err := suite.ts.GetNewTokenPair(suite.userA.ID, "")
@@ -107,18 +100,4 @@ func (suite *TokenTestSuite) TestExpiredToken() {
 	suite.Require().Error(err)
 	suite.Require().Nil(refreshToken)
 
-}
-
-func (suite *TokenTestSuite) TestDeleteAllTokens() {
-	tp1, _ := suite.ts.GetNewTokenPair(suite.userA.ID, "")
-	tp2, _ := suite.ts.GetNewTokenPair(suite.userA.ID, "")
-
-	suite.Assert().NoError(suite.ts.DeleteAllUserTokens(suite.userA))
-	_, err := suite.ts.GetNewTokenPair(suite.userA.ID, tp1.RefreshToken.ID.String())
-	suite.Require().Error(err)
-
-	_, err = suite.ts.GetNewTokenPair(suite.userA.ID, tp2.RefreshToken.ID.String())
-	suite.Require().Error(err)
-
-	suite.Assert().NoError(suite.ts.DeleteAllUserTokens(suite.userA))
 }
