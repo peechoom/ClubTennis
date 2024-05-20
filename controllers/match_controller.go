@@ -141,7 +141,7 @@ func (ctrl *MatchController) Challenge(c *gin.Context) {
 	challengerIDstr := c.PostForm("challengerID")
 	challengedIDstr := c.PostForm("challengedID")
 	if len(challengerIDstr) == 0 || len(challengedIDstr) == 0 {
-		c.Status(http.StatusBadRequest)
+		c.String(http.StatusBadRequest, "post form badly formatted")
 		return
 	}
 
@@ -149,8 +149,13 @@ func (ctrl *MatchController) Challenge(c *gin.Context) {
 	challengedID, err2 := strconv.ParseUint(challengedIDstr, 10, 0)
 
 	if err1 != nil || err2 != nil {
-		c.Status(http.StatusBadRequest)
+		c.String(http.StatusBadRequest, "post form badly formatted")
 		return
+	}
+
+	principleID := c.GetUint("user_id")
+	if principleID != uint(challengerID) {
+		c.String(http.StatusBadRequest, "You are not the challenger")
 	}
 
 	challenger, err := ctrl.userservice.FindByID(uint(challengerID))
@@ -206,7 +211,7 @@ func (ctrl *MatchController) SubmitScore(c *gin.Context) {
 
 	challengerScoreStr := c.PostForm("challengerScore")
 	challengedScoreStr := c.PostForm("challengedScore")
-	if len(challengedScoreStr) == 0 || len(challengedScoreStr) == 0 {
+	if len(challengerScoreStr) == 0 || len(challengedScoreStr) == 0 {
 		c.Status(http.StatusBadRequest)
 		return
 	}

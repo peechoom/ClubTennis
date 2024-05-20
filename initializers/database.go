@@ -3,6 +3,7 @@ package initializers
 import (
 	"ClubTennis/models"
 	"fmt"
+	"os"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -12,11 +13,11 @@ const TestDBName string = "ClubTennisTest"
 const DBName string = "ClubTennis"
 
 func GetDatabase() *gorm.DB {
-	user := "root"
-	pass := "1521"
-	host := "localhost"
-	port := "3306"
-	dbname := DBName
+	user := os.Getenv("DATABASE_USER")
+	pass := os.Getenv("DATABASE_PASS")
+	host := os.Getenv("DATABASE_HOST")
+	port := os.Getenv("DATABASE_PORT")
+	dbname := os.Getenv("DATABASE_DBNAME")
 
 	createDBDsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/", user, pass, host, port)
 	database, err := gorm.Open(mysql.Open(createDBDsn), &gorm.Config{})
@@ -42,8 +43,7 @@ func GetDatabase() *gorm.DB {
 }
 
 func GetTestDatabase() *gorm.DB {
-	//TODO make tempFS for this
-	//TODO hardcoded for now, move to file at some point
+	// hardcoded for now, move to file at some point
 	user := "root"
 	pass := "1521"
 	host := "localhost"

@@ -1,0 +1,23 @@
+{
+    "server": {
+        "port": 8080,
+        "host": "localhost"
+    },
+    "database": {
+        "user" : "",
+        "pass" : "",
+        "host" : "localhost",
+        "port" : 3306,
+        "dbname": "ClubTennis"
+    },
+    "redis": {
+        "port": 6379,
+        "host": "localhost",
+        "pass": ""
+    },
+    "google_oauth": {
+        "redirect_url": "",
+        "client_id": "",
+        "client_secret": ""
+    }
+}
