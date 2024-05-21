@@ -17,6 +17,8 @@ func SetAuthRoutes(engine *gin.Engine, db *gorm.DB, client *redis.Client) {
 		authGroup.Use( /*middleware*/ )
 
 		authGroup.POST("/login", authCtrl.Login)
+		authGroup.GET("/login", authCtrl.Login)
+
 		authGroup.GET("/callback", authCtrl.Callback)
 	}
 }
