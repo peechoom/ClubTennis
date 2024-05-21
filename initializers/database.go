@@ -1,6 +1,7 @@
 package initializers
 
 import (
+	"ClubTennis/models"
 	"fmt"
 	"log"
 	"os"
@@ -13,35 +14,38 @@ const TestDBName string = "ClubTennisTest"
 const DBName string = "ClubTennis"
 
 func GetDatabase() *gorm.DB {
-	return connectUnixSocket()
+	cloud := os.Getenv("CLOUD_INSTANCE")
+	if len(cloud) != 0 && cloud != "false" {
+		return connectUnixSocket()
+	}
 
-	// user := os.Getenv("DATABASE_USER")
-	// pass := os.Getenv("DATABASE_PASS")
-	// host := os.Getenv("DATABASE_HOST")
-	// port := os.Getenv("DATABASE_PORT")
-	// dbname := os.Getenv("DATABASE_DBNAME")
+	user := os.Getenv("DATABASE_USER")
+	pass := os.Getenv("DATABASE_PASS")
+	host := os.Getenv("DATABASE_HOST")
+	port := os.Getenv("DATABASE_PORT")
+	dbname := os.Getenv("DATABASE_DBNAME")
 
-	// createDBDsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/", user, pass, host, port)
-	// database, err := gorm.Open(mysql.Open(createDBDsn), &gorm.Config{})
+	createDBDsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/", user, pass, host, port)
+	database, err := gorm.Open(mysql.Open(createDBDsn), &gorm.Config{})
 
-	// if err != nil {
-	// 	panic(err.Error())
-	// }
+	if err != nil {
+		panic(err.Error())
+	}
 
-	// _ = database.Exec("CREATE DATABASE IF NOT EXISTS " + dbname + ";")
+	_ = database.Exec("CREATE DATABASE IF NOT EXISTS " + dbname + ";")
 
-	// dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", user, pass, host, port, dbname)
-	// db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", user, pass, host, port, dbname)
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
-	// if err != nil {
-	// 	panic(err.Error())
-	// }
+	if err != nil {
+		panic(err.Error())
+	}
 
-	// err = db.AutoMigrate(models.User{}, models.Match{})
-	// if err != nil {
-	// 	panic(err.Error())
-	// }
-	// return db
+	err = db.AutoMigrate(models.User{}, models.Match{})
+	if err != nil {
+		panic(err.Error())
+	}
+	return db
 }
 
 func GetTestDatabase() *gorm.DB {
@@ -106,6 +110,11 @@ func connectUnixSocket() *gorm.DB {
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
+	if err != nil {
+		panic(err.Error())
+	}
+
+	err = db.AutoMigrate(models.User{}, models.Match{})
 	if err != nil {
 		panic(err.Error())
 	}
