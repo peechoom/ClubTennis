@@ -96,7 +96,7 @@ func connectUnixSocket() *gorm.DB {
 		unixSocketPath = mustGetenv("DATABASE_INSTANCE_UNIX_SOCKET") // e.g. '/cloudsql/project:region:instance'
 	)
 
-	createDBDsn := fmt.Sprintf("%s:%s@unix(%s)",
+	createDBDsn := fmt.Sprintf("%s:%s@unix(%s)/",
 		dbUser, dbPwd, unixSocketPath)
 
 	// dbPool is the pool of database connections.
