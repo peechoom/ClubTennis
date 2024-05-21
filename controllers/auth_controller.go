@@ -3,6 +3,7 @@ package controllers
 import (
 	"ClubTennis/services"
 	"errors"
+	"log"
 	"net/http"
 	"os"
 
@@ -74,7 +75,8 @@ func (a *AuthController) Callback(c *gin.Context) {
 	state := c.Query("state")
 	if state != a.stateString {
 		c.Error(errors.New("state string does not match"))
-		c.Redirect(http.StatusTemporaryRedirect, "/")
+		log.Print("state string does not match")
+		c.Redirect(http.StatusTemporaryRedirect, "/error")
 		return
 	}
 
@@ -82,14 +84,16 @@ func (a *AuthController) Callback(c *gin.Context) {
 	email, err := getEmailFromGoogleToken(c, code, a.googleOauthConfig)
 	if err != nil || email == "" {
 		c.Error(err)
-		c.Redirect(http.StatusTemporaryRedirect, "/")
+		log.Print("no code")
+		c.Redirect(http.StatusTemporaryRedirect, "/error")
 		return
 	}
 
 	user, err := a.userService.FindByEmail(email)
 	if err != nil {
 		c.Error(err)
-		c.Redirect(http.StatusTemporaryRedirect, "/")
+		log.Print("no email")
+		c.Redirect(http.StatusTemporaryRedirect, "/error")
 		return
 	}
 	c.Set("user_id", user.ID)
@@ -97,7 +101,8 @@ func (a *AuthController) Callback(c *gin.Context) {
 	tokenPair, err := a.tokenService.GetNewTokenPair(user.ID, "")
 	if err != nil {
 		c.Error(err)
-		c.Redirect(http.StatusTemporaryRedirect, "/")
+		log.Print("couldnt make tokenpair")
+		c.Redirect(http.StatusTemporaryRedirect, "/error")
 		return
 	}
 	//TODO update this to use the config host
