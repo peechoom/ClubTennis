@@ -23,10 +23,7 @@
     <div class="container mt-5">
         <h1>Sign In</h1>
         <div class="mt-4">
-            <select class="form-select" ng-model="selectedUser" ng-options="user as user.FirstName + ' ' + user.LastName for user in users">
-                <option value="">Select User</option>
-            </select>
-            <button class="btn btn-primary mt-3" ng-click="signIn()">Sign In</button>
+            <a href="/auth/login">Sign In</button>
         </div>
     </div>
 
@@ -35,30 +32,7 @@
         var app = angular.module('signInApp', []);
 
         app.controller('signInController', function($scope, $http) {
-            // Function to retrieve list of users
-            $scope.getUsers = function() {
-                $http.get('club/members')
-                    .then(function(response) {
-                        $scope.users = response.data;
-                    })
-                    .catch(function(error) {
-                        console.error('Error retrieving users:', error);
-                    });
-            };
-
-            // Call getUsers function on page load
-            $scope.getUsers();
-
-            // Function to sign in as selected user
-            $scope.signIn = function() {
-                if ($scope.selectedUser) {
-                    // For now, just log the selected user to console
-                    console.log('Signing in as:', $scope.selectedUser);
-                    // Here, you can redirect to the dashboard or perform other sign-in operations
-                } else {
-                    console.error('No user selected');
-                }
-            };
+            
         });
     </script>
 
