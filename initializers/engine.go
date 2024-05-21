@@ -33,6 +33,7 @@ func GetTestEngine() *gin.Engine {
 }
 
 func setRoutings(e *gin.Engine, db *gorm.DB) {
+	routes.SetAuthRoutes(e, db)
 	routes.SetAdminRoutes(e, db)
 	routes.SetClubRoutes(e, db)
 	routes.SetPublicRoutes(e)

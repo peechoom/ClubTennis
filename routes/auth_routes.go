@@ -5,11 +5,10 @@ import (
 	"ClubTennis/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
 	"gorm.io/gorm"
 )
 
-func SetAuthRoutes(engine *gin.Engine, db *gorm.DB, client *redis.Client) {
+func SetAuthRoutes(engine *gin.Engine, db *gorm.DB) {
 	authGroup := engine.Group("/auth")
 	var authCtrl controllers.AuthController = *controllers.NewAuthController(services.NewUserService(db))
 
