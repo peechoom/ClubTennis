@@ -22,5 +22,8 @@ func SetPublicRoutes(engine *gin.Engine) {
 
 		r.GET("/signin", controllers.SigninHandler)
 		r.GET("/signin.html", controllers.SigninHandler)
+
+		r.Static("/static", "./static")
+		r.StaticFile("/favicon.ico", "/static/favicon.ico")
 	}
 }

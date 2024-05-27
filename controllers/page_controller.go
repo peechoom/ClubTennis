@@ -12,11 +12,11 @@ func HomeHandler(c *gin.Context) {
 }
 
 func ChallengeHandler(c *gin.Context) {
-
+	c.HTML(http.StatusOK, "challenge.html", nil)
 }
 
 func AnnouncementsHandler(c *gin.Context) {
-
+	c.HTML(http.StatusOK, "announcements.html", nil)
 }
 func SigninHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "signin.html", nil)
@@ -40,4 +40,8 @@ func AdminHomeHandler(c *gin.Context) {
 
 func EditMembersHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "editmembers.html", nil)
+}
+
+func ChallengeRulesHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "challengerules.html", nil)
 }

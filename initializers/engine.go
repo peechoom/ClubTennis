@@ -2,6 +2,7 @@ package initializers
 
 import (
 	"ClubTennis/routes"
+	"ClubTennis/services"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -33,8 +34,9 @@ func GetTestEngine() *gin.Engine {
 }
 
 func setRoutings(e *gin.Engine, db *gorm.DB) {
-	routes.SetAuthRoutes(e, db)
-	routes.SetAdminRoutes(e, db)
-	routes.SetClubRoutes(e, db)
+	s := services.SetupServices(db)
+	routes.SetAuthRoutes(e, s)
+	routes.SetAdminRoutes(e, s)
+	routes.SetClubRoutes(e, s)
 	routes.SetPublicRoutes(e)
 }

@@ -4,6 +4,8 @@ import (
 	"ClubTennis/models"
 	"ClubTennis/repositories"
 	"errors"
+	"log"
+	"sort"
 
 	"gorm.io/gorm"
 )
@@ -42,11 +44,10 @@ func (s *UserService) saveMany(users []*User) error {
 // returns all users between rank a and b (inclusive)
 func (s *UserService) FindByRankRange(a uint, b uint) (u []User, err error) {
 	if a > b {
-		c := a
-		a = b
-		b = c
+		u, err = s.repo.FindByRankRange(b, a)
+	} else {
+		u, err = s.repo.FindByRankRange(a, b)
 	}
-	u, err = s.repo.FindByRankRange(a, b)
 	return
 }
 
@@ -81,11 +82,21 @@ func (s *UserService) FindAll() (u []User, err error) {
 
 // deletes the user with the given numeric id
 func (s *UserService) DeleteByID(id uint) error {
-	return s.repo.DeleteByID(id)
+	err := s.repo.DeleteByID(id)
+	if err != nil {
+		return err
+	}
+	s.repo.FixLadder()
+	return nil
 }
 
 func (s *UserService) DeleteByUnityID(unityID string) error {
-	return s.repo.DeleteByUnityID(unityID)
+	err := s.repo.DeleteByUnityID(unityID)
+	if err != nil {
+		return err
+	}
+	s.repo.FixLadder()
+	return nil
 }
 
 // algorithm for adjusting the ladder.
@@ -103,7 +114,7 @@ func (s *UserService) AdjustLadder(winner *User, loser *User) error {
 	}
 
 	var ladder []User
-	ladder, err := s.repo.FindByRankRange(loser.Rank, winner.Rank)
+	ladder, err := s.FindByRankRange(winner.Rank, loser.Rank)
 
 	if err != nil {
 		return errors.New("rankings not adjusted, " + err.Error())
@@ -122,11 +133,23 @@ func (s *UserService) AdjustLadder(winner *User, loser *User) error {
 }
 
 func ladderAlgo(ladder []User) {
-	len := len(ladder)
-
-	ladder[len-1].Rank = ladder[0].Rank
-
-	for i := 0; i < len-1; i++ {
-		ladder[i].Rank++
+	sort.Slice(ladder, func(i, j int) bool {
+		return ladder[i].Rank < ladder[j].Rank
+	})
+	size := len(ladder)
+	for i := range ladder {
+		log.Print(ladder[i].FirstName)
+		log.Print(ladder[i].Rank)
 	}
+	log.Print("after applying:")
+	ladder[size-1].Rank = ladder[0].Rank
+	log.Print(ladder[size-1].FirstName)
+	log.Print(ladder[size-1].Rank)
+
+	for i := 0; i < size-1; i++ {
+		ladder[i].Rank++
+		log.Print(ladder[i].FirstName)
+		log.Print(ladder[i].Rank)
+	}
+	log.Print("---")
 }

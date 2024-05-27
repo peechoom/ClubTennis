@@ -132,4 +132,71 @@ func (suite *UserServiceTestSuite) TestLadderAlgo() {
 	suite.Assert().Equal(uint(3), suite.userB.Rank)
 	suite.Assert().Equal(uint(4), suite.userD.Rank)
 	suite.Assert().Equal(uint(5), suite.userE.Rank)
+
+	suite.s.AdjustLadder(suite.userA, suite.userC)
+
+	suite.userA, _ = suite.s.FindByUnityID(suite.userA.UnityID)
+	suite.userB, _ = suite.s.FindByUnityID(suite.userB.UnityID)
+	suite.userC, _ = suite.s.FindByUnityID(suite.userC.UnityID)
+	suite.userD, _ = suite.s.FindByUnityID(suite.userD.UnityID)
+	suite.userE, _ = suite.s.FindByUnityID(suite.userE.UnityID)
+
+	suite.Assert().Equal(uint(1), suite.userA.Rank)
+	suite.Assert().Equal(uint(2), suite.userC.Rank)
+	suite.Assert().Equal(uint(3), suite.userB.Rank)
+	suite.Assert().Equal(uint(4), suite.userD.Rank)
+	suite.Assert().Equal(uint(5), suite.userE.Rank)
+
+	suite.s.AdjustLadder(suite.userE, suite.userD)
+
+	suite.userA, _ = suite.s.FindByUnityID(suite.userA.UnityID)
+	suite.userB, _ = suite.s.FindByUnityID(suite.userB.UnityID)
+	suite.userC, _ = suite.s.FindByUnityID(suite.userC.UnityID)
+	suite.userD, _ = suite.s.FindByUnityID(suite.userD.UnityID)
+	suite.userE, _ = suite.s.FindByUnityID(suite.userE.UnityID)
+
+	suite.Assert().Equal(uint(1), suite.userA.Rank)
+	suite.Assert().Equal(uint(2), suite.userC.Rank)
+	suite.Assert().Equal(uint(3), suite.userB.Rank)
+	suite.Assert().Equal(uint(4), suite.userE.Rank)
+	suite.Assert().Equal(uint(5), suite.userD.Rank)
+
+	suite.s.AdjustLadder(suite.userD, suite.userA)
+
+	suite.userA, _ = suite.s.FindByUnityID(suite.userA.UnityID)
+	suite.userB, _ = suite.s.FindByUnityID(suite.userB.UnityID)
+	suite.userC, _ = suite.s.FindByUnityID(suite.userC.UnityID)
+	suite.userD, _ = suite.s.FindByUnityID(suite.userD.UnityID)
+	suite.userE, _ = suite.s.FindByUnityID(suite.userE.UnityID)
+
+	suite.Assert().Equal(uint(1), suite.userD.Rank)
+	suite.Assert().Equal(uint(2), suite.userA.Rank)
+	suite.Assert().Equal(uint(3), suite.userC.Rank)
+	suite.Assert().Equal(uint(4), suite.userB.Rank)
+	suite.Assert().Equal(uint(5), suite.userE.Rank)
+}
+
+func (suite *UserServiceTestSuite) TestDelete() {
+	suite.s.Save(suite.userA, suite.userB, suite.userC, suite.userD, suite.userE)
+
+	err := suite.s.DeleteByUnityID(suite.userB.UnityID)
+	suite.Require().NoError(err)
+
+	A, err := suite.s.FindByUnityID(suite.userA.UnityID)
+	suite.Assert().NoError(err)
+	suite.Assert().NotNil(A)
+	B, err := suite.s.FindByUnityID(suite.userB.UnityID)
+	suite.Assert().NoError(err)
+	suite.Assert().Nil(B)
+	C, err := suite.s.FindByUnityID(suite.userC.UnityID)
+	suite.Assert().NoError(err)
+	suite.Assert().NotNil(C)
+	E, err := suite.s.FindByUnityID(suite.userE.UnityID)
+	suite.Assert().NoError(err)
+	suite.Assert().NotNil(E)
+
+	suite.Require().Equal(uint(1), A.Rank)
+	suite.Require().Equal(uint(2), C.Rank)
+	suite.Require().Equal(uint(4), E.Rank)
+
 }

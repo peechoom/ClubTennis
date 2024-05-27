@@ -2,18 +2,21 @@ package routes
 
 import (
 	"ClubTennis/controllers"
+	"ClubTennis/middleware"
+	"ClubTennis/services"
+	"os"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 // sets up the routes for any club member via the /club/ grouping
-func SetClubRoutes(engine *gin.Engine, db *gorm.DB) {
+func SetClubRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 	clubGroup := engine.Group("/club")
-	var matchCtrl controllers.MatchController = *controllers.NewMatchController(db)
-	var userCtrl controllers.UserController = *controllers.NewUserController(db)
+	var matchCtrl controllers.MatchController = *controllers.NewMatchController(s.MatchService, s.UserService)
+	var userCtrl controllers.UserController = *controllers.NewUserController(s.UserService, s.MatchService)
+	var auth middleware.Authenticator = *middleware.NewAuthenticator(s.TokenService, s.UserService, os.Getenv("SERVER_HOST"))
 	{
-		clubGroup.Use( /*club auth middleware*/ )
+		clubGroup.Use(auth.AuthenticateMember)
 
 		//club webpage handlers
 		clubGroup.GET("/challenge", controllers.ChallengeHandler)
@@ -25,9 +28,13 @@ func SetClubRoutes(engine *gin.Engine, db *gorm.DB) {
 		clubGroup.GET("/", controllers.ClubHomeHandler)
 		clubGroup.GET("/index.html", controllers.ClubHomeHandler)
 
+		clubGroup.GET("/challengerules", controllers.ChallengeRulesHandler)
+		clubGroup.GET("/challengerules.html", controllers.ChallengeRulesHandler)
+
 		// API handlers
 		// for matches
 		clubGroup.POST("/matches", matchCtrl.Challenge)
+		clubGroup.GET("/matches/recent", matchCtrl.GetRecentMatches)
 		clubGroup.PATCH("/matches/:id", matchCtrl.SubmitScore)
 		clubGroup.GET("/matches/:id", matchCtrl.GetMatchByID)
 		clubGroup.GET("/matches", matchCtrl.GetMatch)
@@ -35,6 +42,8 @@ func SetClubRoutes(engine *gin.Engine, db *gorm.DB) {
 		//for users
 		clubGroup.GET("/members/:id", userCtrl.GetMemberByID)
 		clubGroup.GET("/members", userCtrl.GetAllMembers)
+
+		clubGroup.StaticFile("/style.css", "static/style.css")
 
 	}
 }

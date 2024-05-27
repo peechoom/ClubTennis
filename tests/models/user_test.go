@@ -17,10 +17,10 @@ func TestNewUser(t *testing.T) {
 	require.Equal(t, user.Affiliation, "ncsu")
 	require.Equal(t, user.UnityID, "abcde6")
 	require.Equal(t, user.Email, "asdasdfsfd4@ncsu.edu")
-	require.False(t, user.IsOfficer())
+	require.False(t, user.IsOfficer)
 
 	user.SetOfficer(true)
-	require.True(t, user.IsOfficer())
+	require.True(t, user.IsOfficer)
 
 	o, err := models.NewOfficer("abcde6", "skema", "John", "Doe", "asfdfsfdesfsd.abdfsfsfsfdsfd@skema.edu")
 
@@ -31,10 +31,10 @@ func TestNewUser(t *testing.T) {
 	require.Equal(t, o.UnityID, "abcde6")
 	require.Equal(t, o.Email, "asfdfsfdesfsd.abdfsfsfsfdsfd@skema.edu")
 
-	require.True(t, o.IsOfficer())
+	require.True(t, o.IsOfficer)
 
 	o.SetOfficer(false)
-	require.False(t, o.IsOfficer())
+	require.False(t, o.IsOfficer)
 }
 
 // test new user with bad email

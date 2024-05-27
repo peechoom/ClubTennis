@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type UserController struct {
@@ -16,10 +15,10 @@ type UserController struct {
 	matchservice *services.MatchService
 }
 
-func NewUserController(db *gorm.DB) *UserController {
+func NewUserController(userService *services.UserService, matchService *services.MatchService) *UserController {
 	return &UserController{
-		userservice:  services.NewUserService(db),
-		matchservice: services.NewMatchService(db),
+		userservice:  userService,
+		matchservice: matchService,
 	}
 }
 

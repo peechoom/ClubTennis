@@ -3,18 +3,22 @@ package models
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"gorm.io/gorm"
 )
 
 type Match struct {
-	gorm.Model           //DO NOT touch the ID, the database handles this
-	ChallengerID uint    //ID of player X who challenged player Y to this match
-	ChallengedID uint    //ID of player Y who challenged player X to this match
-	Players      []*User `gorm:"many2many:user_matches;"`
-	Score        uint8   `gorm:"default:0"`
-	IsActive     bool
+	gorm.Model               //DO NOT touch the ID, the database handles this
+	SubmittedAt    time.Time `gorm:"default:0"` //When this match was marked done. only relevant if IsActive is false
+	ChallengerID   uint      //ID of player X who challenged player Y to this match
+	ChallengedID   uint      //ID of player Y who challenged player X to this match
+	ChallengerRank uint      //rank of the challenger
+	ChallengedRank uint      //rank of the challenged player
+	Players        []*User   `gorm:"many2many:user_matches;"`
+	Score          uint8     `gorm:"default:0"`
+	IsActive       bool
 }
 
 // A player may not challenge the same player within this many days
@@ -68,7 +72,11 @@ func NewMatch(Challenger *User, Challenged *User) *Match {
 	m.ChallengerID = Challenger.ID
 	m.ChallengedID = Challenged.ID
 
+	m.ChallengerRank = Challenger.Rank
+	m.ChallengedRank = Challenged.Rank
+
 	m.IsActive = true
+	log.Print(m.SubmittedAt)
 
 	return m
 }
@@ -155,6 +163,7 @@ func (match *Match) SubmitScore(challengerScore int, challengedScore int) (err e
 		match.Challenger().Losses++
 	}
 
+	match.SubmittedAt = time.Now()
 	match.Score = EncodeScore(challengerScore, challengedScore)
 	match.IsActive = false
 

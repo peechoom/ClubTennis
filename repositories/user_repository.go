@@ -3,6 +3,7 @@ package repositories
 import (
 	"ClubTennis/models"
 	"errors"
+	"sort"
 
 	"gorm.io/gorm"
 )
@@ -101,12 +102,22 @@ func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 	return &u, err
 }
 
+type UserMatch struct {
+	MatchID uint
+	UserID  uint
+}
+
 func (r *UserRepository) DeleteByID(id uint) error {
+	var userMatches []UserMatch
+	r.db.Table("user_matches").Unscoped().Where("user_id = ?", id).Delete(&userMatches)
+
 	return r.db.Unscoped().Delete(&models.User{}, id).Error
 }
 
 func (r *UserRepository) DeleteByUnityID(unityID string) error {
-	return r.db.Unscoped().Where(models.User{UnityID: unityID}).Delete(&models.User{}).Error
+	user := models.User{UnityID: unityID}
+	r.db.Select("id").Where(user).Take(&user)
+	return r.DeleteByID(user.ID)
 }
 
 func (r *UserRepository) FindAll() (u []models.User, err error) {
@@ -122,4 +133,19 @@ func (r *UserRepository) FindByUnityID(s string) (u *models.User, err error) {
 		return nil, nil
 	}
 	return
+}
+
+func (r *UserRepository) FixLadder() {
+	ladder, err := r.FindAll()
+	if err != nil {
+		return
+	}
+	sort.Slice(ladder, func(i, j int) bool {
+		return ladder[i].Rank < ladder[j].Rank
+	})
+
+	for i := range ladder {
+		ladder[i].Rank = uint(i + 1)
+	}
+	r.SaveUsers(ladder)
 }

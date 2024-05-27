@@ -5,18 +5,18 @@ import (
 	"ClubTennis/services"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-func SetAuthRoutes(engine *gin.Engine, db *gorm.DB) {
+func SetAuthRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 	authGroup := engine.Group("/auth")
-	var authCtrl controllers.AuthController = *controllers.NewAuthController(services.NewUserService(db))
+	var authCtrl controllers.AuthController = *controllers.NewAuthController(s.UserService, s.TokenService)
 
 	{
 		authGroup.Use( /*middleware*/ )
 
 		authGroup.POST("/login", authCtrl.Login)
 		authGroup.GET("/login", authCtrl.Login)
-		authGroup.POST("/callback", authCtrl.Callback)
+		authGroup.GET("/callback", authCtrl.Callback)
+		authGroup.GET("/me", authCtrl.Me)
 	}
 }

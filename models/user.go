@@ -17,8 +17,8 @@ type User struct {
 	Rank        uint     `gorm:"index:,sort:desc"`                              //users rank in the ladder, should be unique
 	Wins        int      //how many wins the player has
 	Losses      int      //how many losses the player has
-	Matches     []*Match `gorm:"many2many:user_matches;constraint:OnDelete:CASCADE"` //list of matches the player is involved in
-	isOfficer   bool     //whether or not this user is an officer
+	Matches     []*Match `gorm:"constraint:OnDelete:CASCADE;many2many:user_matches"` //list of matches the player is involved in
+	IsOfficer   bool     //whether or not this user is an officer
 }
 
 // thanks openAI
@@ -44,7 +44,7 @@ func NewUser(UnityID string, Affiliation string, FirstName string, LastName stri
 	u.FirstName = FirstName
 	u.LastName = LastName
 	u.Email = Email
-	u.isOfficer = false
+	u.IsOfficer = false
 	return u, nil
 }
 
@@ -60,22 +60,15 @@ func NewOfficer(UnityID string, Affiliation string, FirstName string, LastName s
 	if err != nil {
 		return nil, err
 	}
-	u.isOfficer = true
+	u.IsOfficer = true
 	return u, nil
 }
 
 /*
-promotes user to officer
+sets officer status
 */
 func (u *User) SetOfficer(isOfficer bool) {
-	u.isOfficer = isOfficer
-}
-
-/*
-demotes officer
-*/
-func (u *User) IsOfficer() bool {
-	return u.isOfficer
+	u.IsOfficer = isOfficer
 }
 
 // edits the fields of this user to be the fields of the new user. cannot edit ID because it is a primary key.
@@ -102,5 +95,5 @@ func (u *User) EditUser(nu *User) {
 	}
 	u.Wins = nu.Wins
 	u.Losses = nu.Losses
-	u.SetOfficer(nu.isOfficer)
+	u.SetOfficer(nu.IsOfficer)
 }

@@ -2,13 +2,12 @@ package middleware
 
 import (
 	"ClubTennis/models"
-	"ClubTennis/repositories"
 	"ClubTennis/services"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type Authenticator struct {
@@ -17,10 +16,10 @@ type Authenticator struct {
 	host         string
 }
 
-func NewAuthenticator(tokenRepo *repositories.TokenRepository, db *gorm.DB, host string) *Authenticator {
+func NewAuthenticator(tokenService *services.TokenService, userService *services.UserService, host string) *Authenticator {
 	return &Authenticator{
-		tokenService: services.DefaultTokenService(tokenRepo),
-		userService:  services.NewUserService(db),
+		tokenService: tokenService,
+		userService:  userService,
 		host:         host,
 	}
 }
@@ -88,12 +87,15 @@ func (a *Authenticator) cycleRefreshTokens(c *gin.Context) (uint, error) {
 		return 0, errors.New("you are not authorized to access this page")
 	}
 	refreshToken, err := a.tokenService.ValidateRefreshToken(refreshTokenString)
-	if err != nil {
-		// refresh token expired, user needs to sign in again
+	if err != nil || refreshToken == nil {
+		log.Print(err)
 		c.Redirect(http.StatusTemporaryRedirect, "/")
+		return 0, nil
 	}
 	//cycle refresh tokens
-	tokenPair, err := a.tokenService.GetNewTokenPair(refreshToken.UserID, refreshToken.SS)
+	ss := refreshToken.SS
+	uid := refreshToken.UserID
+	tokenPair, err := a.tokenService.GetNewTokenPair(uid, ss)
 	if err != nil {
 		return 0, errors.New("you are not authorized to access this page")
 	}

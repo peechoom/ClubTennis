@@ -23,7 +23,7 @@ type AuthController struct {
 	stateString       string
 }
 
-func NewAuthController(userService *services.UserService) *AuthController {
+func NewAuthController(userService *services.UserService, tokenservice *services.TokenService) *AuthController {
 	statestr, err := random.String(64)
 	if err != nil {
 		return nil
@@ -36,9 +36,10 @@ func NewAuthController(userService *services.UserService) *AuthController {
 			Endpoint:     google.Endpoint,
 			Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email"},
 		},
-		stateString: statestr,
-		userService: userService,
-		host:        os.Getenv("SERVER_HOST"),
+		stateString:  statestr,
+		userService:  userService,
+		tokenService: tokenservice,
+		host:         os.Getenv("SERVER_HOST"),
 	}
 }
 
@@ -90,7 +91,7 @@ func (a *AuthController) Callback(c *gin.Context) {
 	}
 
 	user, err := a.userService.FindByEmail(email)
-	if err != nil {
+	if err != nil || user == nil {
 		c.Error(err)
 		log.Print("no email")
 		c.Redirect(http.StatusTemporaryRedirect, "/error")
@@ -109,13 +110,36 @@ func (a *AuthController) Callback(c *gin.Context) {
 	c.SetCookie("id_token", tokenPair.IDToken.SS, int(a.tokenService.IDTokenLifetime), "/", a.host, false, true)
 	c.SetCookie("refresh_token", tokenPair.RefreshToken.SS, int(a.tokenService.RefreshTokenLifetime), "/", a.host, false, true)
 
-	if user.IsOfficer() {
+	if user.IsOfficer {
 		c.Redirect(http.StatusPermanentRedirect, "/admin/")
 		return
 	} else {
 		c.Redirect(http.StatusPermanentRedirect, "/club/")
 		return
 	}
+}
+
+/*
+	GET /auth/me
+
+parses the id token and returns the principal ID
+*/
+func (a *AuthController) Me(c *gin.Context) {
+	ss, err := c.Cookie("id_token")
+	if err != nil {
+		c.Error(err)
+		log.Print(err.Error())
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+	uid, err := a.tokenService.ValidateIDToken(ss)
+	if err != nil || uid == 0 {
+		c.Error(err)
+		log.Print(err.Error())
+		c.JSON(http.StatusNotFound, gin.H{"error": "id token not valid"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"user_id": uid})
 }
 
 // UTILITY FUNCTIONS

@@ -3,6 +3,7 @@ package repositories
 import (
 	"ClubTennis/models"
 	"errors"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -113,6 +114,17 @@ func (r *MatchRepository) FindByPlayerIDAndActive(isActive bool, IDs ...uint) (m
 func (r *MatchRepository) FindByChallengerChallenged(challengerID uint, challengedID uint) (m []Match, err error) {
 	err = r.db.Preload("Players").
 		Where(&Match{ChallengerID: challengerID, ChallengedID: challengedID}).
+		Find(&m).Error
+	return
+}
+
+// finds concluded matches
+func (r *MatchRepository) FindByMaxAge(timespan time.Duration) (m []Match, err error) {
+	now := time.Now()
+	then := time.Now().Add(-timespan)
+	err = r.db.
+		Where("submitted_at BETWEEN ? AND ?", then, now).
+		Where("`is_active` = ?", false).
 		Find(&m).Error
 	return
 }

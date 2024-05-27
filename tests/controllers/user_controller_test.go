@@ -45,10 +45,10 @@ func (suite *UserControllerTestSuite) SetupTest() {
 	if err != nil {
 		panic(err)
 	}
-
-	suite.ctrl = controllers.NewUserController(db)
-	suite.ms = services.NewMatchService(db)
-	suite.us = services.NewUserService(db)
+	s := services.SetupServices(db)
+	suite.ctrl = controllers.NewUserController(s.UserService, s.MatchService)
+	suite.ms = s.MatchService
+	suite.us = s.UserService
 
 	suite.router = initializers.GetTestEngine()
 	suite.w = httptest.NewRecorder()

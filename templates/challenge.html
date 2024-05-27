@@ -1,71 +1,376 @@
 <!doctype html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Challenge Match</title>
+    <title>Club Homepage</title>
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <!-- AngularJS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.js"></script>
+
+    <link rel="stylesheet" href="/static/style.css">
+
     <style>
-        /* Style for top scrollable element */
-        #top-scrollable {
-            position: fixed; /* Fixed position to keep it at the top */
-            top: 0; /* Position it at the top */
-            left: 0;
-            width: 100%; /* Occupy full width */
-            height: 200px; /* Set the height as needed */
-            overflow: auto; /* Enable scrolling */
-            border: 1px solid #ccc; /* Optional: Add border for visibility */
+        html, body {
+            height: 100%;
+            margin: 0;
         }
-    
-        /* Style for bottom scrollable element */
-        #bottom-scrollable {
-            position: fixed; /* Fixed position to keep it at the bottom */
-            bottom: 0; /* Position it at the bottom */
-            left: 0;
-            width: 100%; /* Occupy full width */
-            height: 200px; /* Set the height as needed */
-            overflow: auto; /* Enable scrolling */
-            border: 1px solid #ccc; /* Optional: Add border for visibility */
+        .container-fluid {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .table-container {
+            flex: 1;
+            overflow-y: auto;
         }
     </style>
-  </head>
-  <body ng-app="challenge" ng-controller="controller">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.js"></script>
+</head>
+
+<body ng-app="memberHome" ng-controller="memberHomeController">
+    <!-- AngularJS Controller -->
     <script>
-        /* Without these comments, Thymeleaf will try to parse the Javascript as XML and break itself sometimes */
-        /*<![CDATA[*/ 
-        var app = angular.module('challenge', []);
-        app.controller('controller', function($scope, $http, $q) {
+        var app = angular.module('memberHome', []);
+        app.controller('memberHomeController', function($scope, $http) {
+            $scope.me = {};
+            $scope.challenged = {};
+            $scope.submittingFor = {};
+            $scope.idMap = {};
+            $scope.members = [];
+            $scope.matches = [];
+            $scope.challengeResponse = ""
+            $scope.selectedMatch = {};
+            $scope.myScore = ''
+            $scope.oppScore = ''
+            $scope.submissionResponse = ''
 
+
+            function getPrincipal() {
+                return $http.get("/auth/me").then(function(success) {
+                    uid = success.data.user_id;
+                    $scope.me = $scope.idMap.get(uid);
+                }, function(rejection) {
+                    console.error("principal not found");
+                });
+            }
+
+            function loadMembers() {
+                return $http.get("/club/members").then(function(response) {
+                    $scope.members = response.data.sort(function(a, b) { return a.Rank - b.Rank });
+                    $scope.idMap = new Map($scope.members.map((m) => [m.ID, m]));
+                    return getPrincipal();
+                });
+            }
+            function hasActiveChallenge(member) {
+                return (typeof(member.Matches[0]) !== "undefined") && member.Matches[0].IsActive
+            }
+            function isChallengeable(member) {
+                if($scope.me.ID == null || member.ID === $scope.me.ID) {
+                    console.log("my id:" + $scope.me.ID + " " + "their id: " + member.ID)
+                    return false
+                }
+                if(hasActiveChallenge($scope.me) || hasActiveChallenge(member)) {
+                    console.log("has active")
+                    return false
+                }
+                diff = $scope.me.Rank - member.Rank
+                console.log("diff: " + diff)
+                switch (true) {
+                    case $scope.me.Rank <= 10:
+                        return diff <= 2
+                    case $scope.me.Rank < 20:
+                        return diff <= 3
+                    case $scope.me.Rank <= 35:
+                        return diff <= 5
+                    }
+                return diff <= 8
+            }
+            function markChallengeable() {
+                $scope.members.forEach(element => {
+                    element.challengeable = isChallengeable(element)
+                });
+            }
+
+            function loadMatches() {
+                return $http.get("/club/matches?player=" + $scope.me.ID).then(function(response) {
+                    $scope.matches = response.data;
+                    $scope.matches.sort = $scope.matches.sort(function(a, b) {
+                        if(a.IsActive) return -1;
+                        if(b.IsActive) return 1;
+                        return new Date(b.SubmittedAt) - new Date(a.SubmittedAt)
+                    })
+
+                });
+            }
+            function decodeScore(score) {
+                const challengerScore = score >> 4;
+                const challengedScore = score & 0xF;
+                return { challengerScore, challengedScore };
+            }
+            function mapMatches() {
+                for(let i = 0; i < $scope.matches.length; i++) {
+                    $scope.matches[i].Challenger = $scope.idMap.get($scope.matches[i].ChallengerID);
+                    $scope.matches[i].Challenged = $scope.idMap.get($scope.matches[i].ChallengedID);
+                    if($scope.matches[i].Score === 0) {
+                        $scope.matches[i].result = "Pending";
+                        continue;
+                    }
+                    decoded = decodeScore($scope.matches[i].Score);
+                    if(decoded.challengerScore == 6) {
+                        $scope.matches[i].result = "Won";
+                    } else {
+                        $scope.matches[i].result = "Lost";
+                    }
+                    $scope.matches[i].challengerScore = decoded.challengerScore;
+                    $scope.matches[i].challengedScore = decoded.challengedScore;
+                }
+            }
+            function loadEverything() {
+                return loadMembers()
+                    .then(loadMatches)
+                    .then(markChallengeable)
+                    .then(mapMatches);
+            }
+            loadEverything();
+
+
+            $scope.showChallengePopup = function (member) {
+                $scope.challenged = member;
+                $('#challengeConfirmationModal').modal('show');
+            }
+            $scope.hideChallengePopup = function () {
+                $scope.challenged = null;
+                $('#challengeConfirmationModal').modal('hide');
+            }
+            $scope.showSubmitPopup = function(match) {
+                $scope.selectedMatch = match
+                $scope.myScore = ''
+                $scope.oppScore = ''
+                $('#challengeSubmitModal').modal('show');
+            }
+            $scope.hideSubmitPopup = function(member) {
+                $scope.myScore = ''
+                $scope.oppScore = ''
+                $('#challengeSubmitModal').modal('hide');
+            }
+
+            $scope.challenge = function() {
+                if($scope.challenged == null || $scope.challenged.ID == null) {
+                    console.log("nobody selected!")
+                    return;
+                }
+                data = {
+                    "challengerID": $scope.me.ID,
+                    "challengedID": $scope.challenged.ID
+                };
+                $('#challengeConfirmationModal').modal('hide');
+
+                $http.post("/club/matches", data).then(function(success) {
+                    $scope.challengeResponse = "You have challenged " + $scope.challenged.FirstName;
+                    $('#challengeResponseModal').modal('show');
+
+                }, function(failure) {
+                    $scope.challengeResponse = "CHALLENGE MATCH NOT CREATED:" + failure.data;
+                    $('#challengeResponseModal').modal('show');
+                }).then(loadMatches).then(mapMatches);
+            }
+            $scope.submit = function() {
+                $('#challengeSubmitModal').modal('hide')
+                if($scope.selectedMatch == null) {
+                    return 
+                }
+                if(isNaN($scope.myScore) || isNaN($scope.oppScore)) {
+                    return;
+                }
+                myScore = parseInt($scope.myScore);
+                oppScore = parseInt($scope.oppScore);
+                if(myScore < 0 || myScore > 6 || oppScore < 0 || oppScore > 6) {
+                    return;
+                }
+                if(myScore != 6 && oppScore != 6) {
+                    return;
+                }
+                data = {};
+                if($scope.selectedMatch.ChallengerID = $scope.me.ID) {
+                    data = {"challengerScore": myScore, "challengedScore": oppScore};
+                } else {
+                    data = {"challengerScore":oppScore, "challengedScore":myScore};
+                }
+                $http.patch("/club/matches/" + $scope.selectedMatch.ID, data).then(function(success) {
+                    $scope.submissionResponse = "successfully submitted score " + myScore + " - " + oppScore + "."
+                    $('#submissionResponseModal').modal('show');
+                }, function(rejection) {
+                    $scope.submissionResponse = "ERROR: " + rejection.message
+                    $('#submissionResponseModal').modal('show');
+                }).then(loadEverything);
+            }
         });
-
     </script>
-    <h1>Challenge</h1>
 
-    <h2>Ladder</h2>
-    <table>
-        <tr>
-            <td><strong>Rank</strong></td>
-            <td><strong>Member</strong></td>
-            <td></td>
-          </tr>
-          
-          <tr>
-            <td><p>mem</p></td>
-            <td><p>firstname</p></td>
-            <td><button>Challenge</button></td>
-          </tr>
-    </table>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <!-- Offcanvas toggle button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-    <h2>Recent Matches</h2>
-    <table>
-        <tr>
-            <td><span>Alec</span> challenged <span>Sid</span></td>
-            <td><span>W 6-4</span></td>
-        </tr>
-    </table>
+            <!-- Navbar header/brand centered -->
+            <a class="navbar-brand mx-auto" href="/club/">NC STATE Club Tennis</a>
 
-    </body>
+            <!-- Offcanvas navbar content -->
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/club/challenge">Challenge</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/club/announcements">Announcements</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/contact">Contact</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Challenge Confirmation Modal -->
+    <div class="modal fade" id="challengeConfirmationModal" tabindex="-1" aria-labelledby="challengeConfirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="challengeConfirmationModalLabel">Challenge Confirmation</h5>
+                </div>
+                <div class="modal-body">
+                    <p>You are about to challenge</p>
+                    <p><span><strong>{{challenged.FirstName}} {{challenged.LastName}}</strong></span></p>
+                    <p>continue?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" ng-click="challenge()">Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- challenge response modal -->
+    <div class="modal fade" id="challengeResponseModal" tabindex="-1" aria-labelledby="challengeResponseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="challengeResponseModalLabel">Challenge Confirmation</h5>
+                </div>
+                <div class="modal-body">
+                    <p>{{challengeResponse}}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Challenge submission Modal -->
+    <div class="modal fade" id="challengeSubmitModal" tabindex="-1" aria-labelledby="challengeSubmitModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="challengeSubmitModalLabel">Submit Score</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <input type="number" class="form-control" placeholder="Your Score" aria-label="YourScore" ng-model="myScore">
+                      </div>     
+                      <div class="input-group mb-3">
+                        <input type="number" class="form-control" placeholder="Opponent Score" aria-label="OpponentScore" ng-model="oppScore">
+                      </div>                  
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" ng-click="submit()">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submission response Modal -->
+    <div class="modal fade" id="submissionResponseModal" tabindex="-1" aria-labelledby="submissionResponseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="submissionResponseModalLabel">Submit Score</h5>
+                </div>
+                <div class="modal-body">
+                    <p>{{submissionResponse}}</p>                
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ok</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Site Body -->
+    <div class="container-fluid mt-5">
+        <div class="row">
+            <div class="col d-flex justify-content-between align-items-end">
+                <h1>Welcome, {{me.FirstName}}</h1>
+                <div><a href="/club/challengerules" style="color:black"><h5>Challenge Rules</h5></a></div>
+            </div>
+        </div>
+        
+        <div class="table-container border border-black">
+            <h2>Men's Ladder</h2>
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">Rank</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Email</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="member in members">
+                        <th scope="row">{{member.Rank}}</th>
+                        <td>{{member.FirstName}} {{member.LastName}}</td>
+                        <td>{{member.Email}}</td>
+                        <td ng-if="member.challengeable"><button class="btn btn-primary" type="button" ng-click="showChallengePopup(member)">Challenge</button></td>
+                        <td ng-if="!member.challengeable"><button class="btn btn-secondary" type="button" >Challenge</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="table-container">
+            <h2>My Challenges</h2>
+            <table class="table table-hover">
+                <tbody>
+                    <tr ng-repeat="match in matches" >
+                        <td><i><strong>{{match.Challenger.FirstName}}</strong> ({{match.ChallengerRank}}) challenged <strong>{{match.Challenged.FirstName}}</strong> ({{match.ChallengedRank}})</i></td>
+                        <td><p ng-class="{'text-winner': match.result === 'Won', 'text-loser': match.result === 'Lost'}"><strong>{{match.result}}</strong></p></td>
+                        <td ng-if="match.Score !== 0">{{match.challengerScore}} - {{match.challengedScore}}</td>
+                        <td ng-if="match.Score === 0">&#128345</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
 </html>

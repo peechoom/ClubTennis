@@ -3,26 +3,30 @@ package controllers
 import (
 	"ClubTennis/services"
 	"errors"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 const ACTIVE_QUERY string = "active"
 const PLAYERS_QUERY string = "player"
+
+// how "recent" a "recent" match is
+const RECENT_TIME_SPAN = 7 * time.Hour * 24
 
 type MatchController struct {
 	matchservice *services.MatchService
 	userservice  *services.UserService
 }
 
-func NewMatchController(db *gorm.DB) *MatchController {
+func NewMatchController(matchService *services.MatchService, userService *services.UserService) *MatchController {
 	return &MatchController{
-		matchservice: services.NewMatchService(db),
-		userservice:  services.NewUserService(db),
+		matchservice: matchService,
+		userservice:  userService,
 	}
 }
 
@@ -129,6 +133,22 @@ func (ctrl *MatchController) GetMatch(c *gin.Context) {
 	c.JSON(http.StatusOK, fetched)
 }
 
+/*
+	GET .../matches/recent
+
+returns all recent matches. player ids included but not player data. responsibility of frontend
+*/
+func (ctrl *MatchController) GetRecentMatches(c *gin.Context) {
+	matches, err := ctrl.matchservice.FindAllRecentMatches(RECENT_TIME_SPAN)
+	if err != nil {
+		c.Error(err)
+		log.Print(err.Error())
+		c.JSON(http.StatusNotFound, gin.H{"error": "could not find recent matches"})
+		return
+	}
+	c.JSON(http.StatusOK, matches)
+}
+
 //----------------------------------------------------------------------------------------------------------------
 // POST HANDLERS
 
@@ -138,17 +158,19 @@ expects: challengerID and challengedID in json
 */
 func (ctrl *MatchController) Challenge(c *gin.Context) {
 
-	challengerIDstr := c.PostForm("challengerID")
-	challengedIDstr := c.PostForm("challengedID")
-	if len(challengerIDstr) == 0 || len(challengedIDstr) == 0 {
+	var m map[string]int
+	err := c.ShouldBindBodyWithJSON(&m)
+	if err != nil {
+		log.Println(err)
 		c.String(http.StatusBadRequest, "post form badly formatted")
 		return
 	}
+	challengerID := m["challengerID"]
+	challengedID := m["challengedID"]
 
-	challengerID, err1 := strconv.ParseUint(challengerIDstr, 10, 0)
-	challengedID, err2 := strconv.ParseUint(challengedIDstr, 10, 0)
-
-	if err1 != nil || err2 != nil {
+	if challengerID == 0 || challengedID == 0 {
+		log.Println(challengerID)
+		log.Println(challengedID)
 		c.String(http.StatusBadRequest, "post form badly formatted")
 		return
 	}
@@ -161,23 +183,26 @@ func (ctrl *MatchController) Challenge(c *gin.Context) {
 	challenger, err := ctrl.userservice.FindByID(uint(challengerID))
 	if err != nil {
 		c.Error(err)
+		c.String(http.StatusNotFound, "Challenger ID not found")
 		return
 	}
 	challenged, err := ctrl.userservice.FindByID(uint(challengedID))
 	if err != nil {
 		c.Error(err)
+		c.String(http.StatusNotFound, "Opponent ID not found")
 		return
 	}
 
 	match, err := challenger.Challenge(challenged)
 	if err != nil {
-		c.String(http.StatusForbidden, err.Error())
+		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
 	err = ctrl.matchservice.Save(match)
 	if err != nil {
 		c.Error(err)
+		c.String(http.StatusInternalServerError, "Internal error")
 		return
 	}
 	c.JSON(http.StatusCreated, *match)
@@ -209,19 +234,15 @@ func (ctrl *MatchController) SubmitScore(c *gin.Context) {
 		return
 	}
 
-	challengerScoreStr := c.PostForm("challengerScore")
-	challengedScoreStr := c.PostForm("challengedScore")
-	if len(challengerScoreStr) == 0 || len(challengedScoreStr) == 0 {
-		c.Status(http.StatusBadRequest)
+	var m map[string]int
+	err = c.ShouldBindBodyWithJSON(&m)
+	if err != nil {
+		log.Println(err)
+		c.String(http.StatusBadRequest, "post form badly formatted")
 		return
 	}
-
-	challengerScore, err1 := strconv.ParseInt(challengerScoreStr, 10, 0)
-	challengedScore, err2 := strconv.ParseInt(challengedScoreStr, 10, 0)
-	if err1 != nil || err2 != nil {
-		c.Status(http.StatusBadRequest)
-		return
-	}
+	challengerScore := m["challengerScore"]
+	challengedScore := m["challengedScore"]
 
 	err = match.SubmitScore(int(challengerScore), int(challengedScore))
 	if err != nil {

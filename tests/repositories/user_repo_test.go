@@ -13,6 +13,7 @@ import (
 type UserTestSuite struct {
 	suite.Suite
 	repo  *repositories.UserRepository
+	mr    *repositories.MatchRepository
 	userA *User
 	userB *User
 }
@@ -35,6 +36,7 @@ func (suite *UserTestSuite) SetupTest() {
 	}
 
 	suite.repo = repositories.NewUserRepository(db)
+	suite.mr = repositories.NewMatchRepository(db)
 	suite.userA, _ = models.NewUser("bdoller4", "ncsu", "bowie", "doliver", "bdoller4@ncsu.edu")
 	suite.userB, _ = models.NewUser("qbingus5", "ncsu", "quevin", "bingus", "qbingus5@ncsu.edu")
 	suite.userA.Matches = make([]*models.Match, 0)
@@ -146,4 +148,35 @@ func (suite *UserTestSuite) TestSubmitUser() {
 	err = suite.repo.SubmitUser(uc)
 	suite.Require().Equal(uint(3), uc.Rank)
 
+}
+
+func (suite *UserTestSuite) TestDeleteUser() {
+	err := suite.repo.SubmitUser(suite.userA)
+	suite.Assert().NoError(err)
+
+	err = suite.repo.DeleteByID(suite.userA.ID)
+	suite.Require().NoError(err)
+
+	everything, _ := suite.repo.FindAll()
+	suite.Require().Zero(len(everything))
+	suite.userA.ID = 0
+	suite.Assert().NoError(suite.repo.SubmitUser(suite.userA))
+	suite.Assert().NoError(suite.repo.SubmitUser(suite.userB))
+
+	m, _ := suite.userA.Challenge(suite.userB)
+	suite.mr.SubmitMatch(m)
+	suite.repo.SaveUser(suite.userA)
+	suite.repo.SaveUser(suite.userB)
+
+	err = suite.repo.DeleteByID(suite.userA.ID)
+	suite.Require().NoError(err)
+	everything, _ = suite.repo.FindAll()
+	suite.Require().Len(everything, 1)
+
+	b, _ := suite.repo.FindByID(suite.userB.ID)
+	suite.Require().Len(b.Matches, 1)
+	suite.Require().Nil(b.Matches[0].Challenger())
+
+	a, _ := suite.repo.FindByID(suite.userA.ID)
+	suite.Require().Nil(a)
 }

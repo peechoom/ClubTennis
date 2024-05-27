@@ -4,6 +4,7 @@ import (
 	"ClubTennis/models"
 	"ClubTennis/repositories"
 	"errors"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -102,12 +103,26 @@ func (ms *MatchService) FindByPlayerIDAndActive(active bool, IDs ...uint) (m []M
 	return
 }
 
+// returns all matches that are/arent active
 func (ms *MatchService) FindByActive(active bool) (m []Match, err error) {
 	m, err = ms.repo.FindByActive(active)
 	return
 }
 
-// TODO implement this
-// func (ms *MatchService) FindAllRecentMatches(timespan int) (m []Match, err error) {
-// 	m, err =
-// }
+// returns all submitted that are at most {timespan} old. if so many matches
+// cannot be filled, open matches will fill in the gaps
+func (ms *MatchService) FindAllRecentMatches(timespan time.Duration) ([]Match, error) {
+	const recent_size int = 15
+	m, err := ms.repo.FindByMaxAge(timespan)
+	var a []Match
+	if err != nil || len(m) < recent_size {
+		a, err = ms.repo.FindByActive(true)
+		if err != nil {
+			return nil, err
+		}
+	}
+	for i := 0; len(m) < recent_size && i < len(a); i++ {
+		m = append(m, a[i])
+	}
+	return m, nil
+}
