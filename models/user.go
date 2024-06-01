@@ -9,17 +9,22 @@ import (
 
 type User struct {
 	gorm.Model
-	UnityID     string   `gorm:"index:,unique,sort:desc,type:btree,length:50"` //ncsu unity id or skema id, should be unique
-	Affiliation string   //ncsu.edu or skema.edu
-	FirstName   string   //users first name
-	LastName    string   //users last name
-	Email       string   `gorm:"index:,unique,sort:desc,type:btree,length:100"` //users e-mail address
-	Rank        uint     `gorm:"index:,sort:desc"`                              //users rank in the ladder, should be unique
-	Wins        int      //how many wins the player has
-	Losses      int      //how many losses the player has
-	Matches     []*Match `gorm:"constraint:OnDelete:CASCADE;many2many:user_matches"` //list of matches the player is involved in
-	IsOfficer   bool     //whether or not this user is an officer
+	UnityID         string   `gorm:"index:,unique,sort:desc,type:btree,length:50"` //ncsu unity id or skema id, should be unique
+	Affiliation     string   //ncsu.edu or skema.edu
+	FirstName       string   //users first name
+	LastName        string   //users last name
+	Email           string   `gorm:"index:,unique,sort:desc,type:btree,length:100"` //users e-mail address
+	Rank            uint     `gorm:"index:,sort:desc"`                              //users rank in the ladder, should be unique
+	Wins            int      //how many wins the player has
+	Losses          int      //how many losses the player has
+	Matches         []*Match `gorm:"constraint:OnDelete:CASCADE;many2many:user_matches"` //list of matches the player is involved in
+	IsOfficer       bool     //whether or not this user is an officer
+	IsChallengeable bool     `gorm:"-:all"` //can this user be challenged? not stored
+	Ladder          string   // what ladder this user plays in -> 'M' for mens, 'W' for womens
 }
+
+const MENS_LADDER string = "M"
+const WOMENS_LADDER string = "W"
 
 // thanks openAI
 var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
@@ -27,7 +32,7 @@ var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]
 /*
 create a new user
 */
-func NewUser(UnityID string, Affiliation string, FirstName string, LastName string, Email string) (*User, error) {
+func NewUser(UnityID string, Affiliation string, FirstName string, LastName string, Email string, Ladder string) (*User, error) {
 	if UnityID == "" || Affiliation == "" || FirstName == "" || LastName == "" {
 		return nil, errors.New("some fields not given")
 	}
@@ -45,6 +50,7 @@ func NewUser(UnityID string, Affiliation string, FirstName string, LastName stri
 	u.LastName = LastName
 	u.Email = Email
 	u.IsOfficer = false
+	u.Ladder = Ladder
 	return u, nil
 }
 
@@ -55,8 +61,8 @@ func isValidEmail(email string) bool {
 /*
 create a new officer
 */
-func NewOfficer(UnityID string, Affiliation string, FirstName string, LastName string, Email string) (*User, error) {
-	u, err := NewUser(UnityID, Affiliation, FirstName, LastName, Email)
+func NewOfficer(UnityID string, Affiliation string, FirstName string, LastName string, Email string, Ladder string) (*User, error) {
+	u, err := NewUser(UnityID, Affiliation, FirstName, LastName, Email, Ladder)
 	if err != nil {
 		return nil, err
 	}
@@ -92,6 +98,9 @@ func (u *User) EditUser(nu *User) {
 	}
 	if nu.Rank != 0 {
 		u.Rank = nu.Rank
+	}
+	if nu.Ladder != "" {
+		u.Ladder = nu.Ladder
 	}
 	u.Wins = nu.Wins
 	u.Losses = nu.Losses

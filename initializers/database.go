@@ -41,7 +41,7 @@ func GetDatabase() *gorm.DB {
 		panic(err.Error())
 	}
 
-	err = db.AutoMigrate(models.User{}, models.Match{})
+	err = db.AutoMigrate(&models.User{}, &models.Match{}, &models.Announcement{}, &models.Slide{}, &models.Snippet{})
 	if err != nil {
 		panic(err.Error())
 	}
@@ -114,7 +114,7 @@ func connectUnixSocket() *gorm.DB {
 		panic(err.Error())
 	}
 
-	err = db.AutoMigrate(models.User{}, models.Match{})
+	err = db.AutoMigrate(&models.User{}, &models.Match{}, &models.Announcement{})
 	if err != nil {
 		panic(err.Error())
 	}

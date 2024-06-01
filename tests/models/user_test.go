@@ -9,7 +9,7 @@ import (
 
 // test basic user functionality
 func TestNewUser(t *testing.T) {
-	user, err := models.NewUser("abcde6", "ncsu", "John", "Doe", "asdasdfsfd4@ncsu.edu")
+	user, err := models.NewUser("abcde6", "ncsu", "John", "Doe", "asdasdfsfd4@ncsu.edu", models.MENS_LADDER)
 
 	require.NoError(t, err)
 	require.Equal(t, user.FirstName, "John")
@@ -22,7 +22,7 @@ func TestNewUser(t *testing.T) {
 	user.SetOfficer(true)
 	require.True(t, user.IsOfficer)
 
-	o, err := models.NewOfficer("abcde6", "skema", "John", "Doe", "asfdfsfdesfsd.abdfsfsfsfdsfd@skema.edu")
+	o, err := models.NewOfficer("abcde6", "skema", "John", "Doe", "asfdfsfdesfsd.abdfsfsfsfdsfd@skema.edu", models.MENS_LADDER)
 
 	require.NoError(t, err)
 	require.Equal(t, o.FirstName, "John")
@@ -39,27 +39,27 @@ func TestNewUser(t *testing.T) {
 
 // test new user with bad email
 func TestNewUserBadEmail(t *testing.T) {
-	user, err := models.NewUser("abcdef", "ncsu", "John", "Doe", "notvalid@notanEmail")
+	user, err := models.NewUser("abcdef", "ncsu", "John", "Doe", "notvalid@notanEmail", models.MENS_LADDER)
 
 	require.Nil(t, user)
 	require.Error(t, err)
 
-	user, err = models.NewUser("abcdef", "ncsu", "John", "Doe", "notvalid@notanEmail.")
+	user, err = models.NewUser("abcdef", "ncsu", "John", "Doe", "notvalid@notanEmail.", models.MENS_LADDER)
 
 	require.Nil(t, user)
 	require.Error(t, err)
 
-	user, err = models.NewUser("abcdef", "ncsu", "John", "Doe", "notanEmail.com")
+	user, err = models.NewUser("abcdef", "ncsu", "John", "Doe", "notanEmail.com", models.MENS_LADDER)
 
 	require.Nil(t, user)
 	require.Error(t, err)
 
-	user, err = models.NewUser("abcdef", "ncsu", "John", "Doe", "@notAnEmail")
+	user, err = models.NewUser("abcdef", "ncsu", "John", "Doe", "@notAnEmail", models.MENS_LADDER)
 
 	require.Nil(t, user)
 	require.Error(t, err)
 
-	user, err = models.NewUser("abcdef", "ncsu", "John", "Doe", "notAnEmail@")
+	user, err = models.NewUser("abcdef", "ncsu", "John", "Doe", "notAnEmail@", models.MENS_LADDER)
 
 	require.Nil(t, user)
 	require.Error(t, err)

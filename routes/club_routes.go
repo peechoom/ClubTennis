@@ -12,9 +12,10 @@ import (
 // sets up the routes for any club member via the /club/ grouping
 func SetClubRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 	clubGroup := engine.Group("/club")
-	var matchCtrl controllers.MatchController = *controllers.NewMatchController(s.MatchService, s.UserService)
-	var userCtrl controllers.UserController = *controllers.NewUserController(s.UserService, s.MatchService)
-	var auth middleware.Authenticator = *middleware.NewAuthenticator(s.TokenService, s.UserService, os.Getenv("SERVER_HOST"))
+	var matchCtrl *controllers.MatchController = controllers.NewMatchController(s.MatchService, s.UserService)
+	var userCtrl *controllers.UserController = controllers.NewUserController(s.UserService, s.MatchService)
+	var annCtrl *controllers.AnnouncementController = controllers.NewAnnouncementController(s.AnnouncementService)
+	var auth *middleware.Authenticator = middleware.NewAuthenticator(s.TokenService, s.UserService, os.Getenv("SERVER_HOST"))
 	{
 		clubGroup.Use(auth.AuthenticateMember)
 
@@ -43,7 +44,7 @@ func SetClubRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 		clubGroup.GET("/members/:id", userCtrl.GetMemberByID)
 		clubGroup.GET("/members", userCtrl.GetAllMembers)
 
-		clubGroup.StaticFile("/style.css", "static/style.css")
-
+		// for announcements
+		clubGroup.GET("/announcements/:page", annCtrl.GetAnnouncementPage)
 	}
 }

@@ -37,8 +37,8 @@ func (suite *UserTestSuite) SetupTest() {
 
 	suite.repo = repositories.NewUserRepository(db)
 	suite.mr = repositories.NewMatchRepository(db)
-	suite.userA, _ = models.NewUser("bdoller4", "ncsu", "bowie", "doliver", "bdoller4@ncsu.edu")
-	suite.userB, _ = models.NewUser("qbingus5", "ncsu", "quevin", "bingus", "qbingus5@ncsu.edu")
+	suite.userA, _ = models.NewUser("bdoller4", "ncsu", "bowie", "doliver", "bdoller4@ncsu.edu", models.MENS_LADDER)
+	suite.userB, _ = models.NewUser("qbingus5", "ncsu", "quevin", "bingus", "qbingus5@ncsu.edu", models.MENS_LADDER)
 	suite.userA.Matches = make([]*models.Match, 0)
 	suite.userB.Matches = make([]*models.Match, 0)
 
@@ -119,7 +119,7 @@ func (suite *UserTestSuite) TestGetByRanking() {
 	suite.Require().Equal(suite.userB.UnityID, b.UnityID)
 
 	var u []models.User
-	u, err = suite.repo.FindByRankRange(3, 4)
+	u, err = suite.repo.FindByRankRange(3, 4, models.MENS_LADDER)
 
 	sort.Slice(u, func(i, j int) bool {
 		return u[i].Rank < u[j].Rank
@@ -144,7 +144,7 @@ func (suite *UserTestSuite) TestSubmitUser() {
 	ub, _ := suite.repo.FindByUnityID(suite.userB.UnityID)
 	suite.Require().Equal(uint(2), ub.Rank)
 
-	uc, _ := models.NewOfficer("kwest4", "ncsu", "Kanye", "West", "kwest4@ncsu.edu")
+	uc, _ := models.NewOfficer("kwest4", "ncsu", "Kanye", "West", "kwest4@ncsu.edu", models.MENS_LADDER)
 	err = suite.repo.SubmitUser(uc)
 	suite.Require().Equal(uint(3), uc.Rank)
 

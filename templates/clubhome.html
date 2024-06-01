@@ -22,6 +22,7 @@
         html, body {
             height: 100%;
             margin: 0;
+            overflow-y: hidden;
         }
         .container-fluid {
             display: flex;
@@ -30,8 +31,24 @@
         }
         .table-container {
             flex: 1;
-            overflow-y: auto;
+            overflow-y: scroll;
         }
+        
+        /* Gold for First Place */
+        .first-place {
+            color: #ffd700; /* Gold color */
+        }
+
+        /* Silver for Second Place */
+        .second-place {
+            color: #c0c0c0; /* Silver color */
+        }
+
+        /* Bronze for Third Place */
+        .third-place {
+            color: #cd7f32; /* Bronze color */
+        }
+
     </style>
 </head>
 
@@ -67,32 +84,7 @@
             function hasActiveChallenge(member) {
                 return (typeof(member.Matches[0]) !== "undefined") && member.Matches[0].IsActive
             }
-            function isChallengeable(member) {
-                if($scope.me.ID == null || member.ID === $scope.me.ID) {
-                    console.log("my id:" + $scope.me.ID + " " + "their id: " + member.ID)
-                    return false
-                }
-                if(hasActiveChallenge($scope.me) || hasActiveChallenge(member)) {
-                    console.log("has active")
-                    return false
-                }
-                diff = $scope.me.Rank - member.Rank
-                console.log("diff: " + diff)
-                switch (true) {
-                    case $scope.me.Rank <= 10:
-                        return diff <= 2
-                    case $scope.me.Rank < 20:
-                        return diff <= 3
-                    case $scope.me.Rank <= 35:
-                        return diff <= 5
-                    }
-                return diff <= 8
-            }
-            function markChallengeable() {
-                $scope.members.forEach(element => {
-                    element.challengeable = isChallengeable(element)
-                });
-            }
+
 
             function loadMatches() {
                 return $http.get("/club/matches/recent").then(function(response) {
@@ -128,7 +120,6 @@
             function loadEverything() {
                 return loadMembers()
                     .then(loadMatches)
-                    .then(markChallengeable)
                     .then(mapMatches);
             }
             loadEverything();
@@ -191,9 +182,6 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/club/announcements">Announcements</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/contact">Contact</a>
-                        </li>
                     </ul>
                 </div>
             </div>
@@ -240,28 +228,50 @@
     <!-- Site Body -->
     <div class="container-fluid mt-5">
         <h1>Welcome, {{me.FirstName}}!</h1>
-        <div class="table-container border border-black">
-            <h2>Men's Ladder</h2>
-            <table class="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th scope="col">Rank</th>
-                        <th scope="col">Name</th>
-                        <th scope="col">Email</th>
-                        <th scope="col"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr ng-repeat="member in members">
-                        <th scope="row">{{member.Rank}}</th>
-                        <td>{{member.FirstName}} {{member.LastName}}</td>
-                        <td>{{member.Email}}</td>
-                        <td ng-if="member.challengeable"><button class="btn btn-primary" type="button" ng-click="showChallengePopup(member)">Challenge</button></td>
-                        <td ng-if="!member.challengeable"><button class="btn btn-secondary" type="button" >Challenge</button></td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- ladder containers -->
+        <div class="container border border-black">
+            <div class="d-flex justify-content-between">
+                <!-- Men's Ladder -->
+                <div class="table-container" style="max-height: 50vh;">
+                    <h2>Men's Ladder</h2>
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">Rank</th>
+                                <th scope="col">Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="member in members" ng-if="member.Ladder === 'M'">
+                                <th scope="row">{{member.Rank}}</th>
+                                <td>{{member.FirstName}} {{member.LastName}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="vr"></div>
+                <!-- Women's Ladder -->
+                <div class="table-container" style="max-height: 50vh;">
+                    <h2>Women's Ladder</h2>
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">Rank</th>
+                                <th scope="col">Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="member in members" ng-if="member.Ladder === 'W'">
+                                <th scope="row">{{member.Rank}}</th>
+                                <td>{{member.FirstName}} {{member.LastName}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
+        
+        
         <div class="table-container">
             <h2>Recent Matches</h2>
             <table class="table table-hover">

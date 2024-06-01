@@ -53,11 +53,11 @@ func (suite *UserControllerTestSuite) SetupTest() {
 	suite.router = initializers.GetTestEngine()
 	suite.w = httptest.NewRecorder()
 
-	suite.userA, _ = models.NewUser("shboil4", "ncsu", "Sam", "Boiland", "shboil4@ncsu.edu")
-	suite.userB, _ = models.NewUser("jbeno5", "ncsu", "James", "Benolli", "jbeno5@ncsu.edu")
-	suite.userC, _ = models.NewUser("pdiddy4", "ncsu", "Puff", "Daddy", "pdiddy@ncsu.edu")
-	suite.userD, _ = models.NewUser("jobitch2", "ncsu", "Joel", "Embitch", "jobitch@ncsu.edu")
-	suite.userE, _ = models.NewUser("myprince2", "ncsu", "Lebron", "James", "myprince2@ncsu.edu")
+	suite.userA, _ = models.NewUser("shboil4", "ncsu", "Sam", "Boiland", "shboil4@ncsu.edu", models.MENS_LADDER)
+	suite.userB, _ = models.NewUser("jbeno5", "ncsu", "James", "Benolli", "jbeno5@ncsu.edu", models.MENS_LADDER)
+	suite.userC, _ = models.NewUser("pdiddy4", "ncsu", "Puff", "Daddy", "pdiddy@ncsu.edu", models.MENS_LADDER)
+	suite.userD, _ = models.NewUser("jobitch2", "ncsu", "Joel", "Embitch", "jobitch@ncsu.edu", models.MENS_LADDER)
+	suite.userE, _ = models.NewUser("myprince2", "ncsu", "Lebron", "James", "myprince2@ncsu.edu", models.MENS_LADDER)
 
 	suite.userA.Rank = 1
 	suite.userB.Rank = 2
@@ -86,6 +86,8 @@ func (suite *UserControllerTestSuite) TestGetUserByID() {
 	//correct unity id
 	var route string = "/club/members/pdiddy4"
 	req, _ := http.NewRequest("GET", route, nil)
+	c, _ := gin.CreateTestContext(suite.w) //idk how to make ts work
+	c.Set("user_id", uint(1))
 
 	suite.router.ServeHTTP(suite.w, req)
 	suite.Require().Equal(http.StatusOK, suite.w.Code)
@@ -99,7 +101,8 @@ func (suite *UserControllerTestSuite) TestGetUserByID() {
 	route = "/club/members/pdiddy3"
 	req, _ = http.NewRequest("GET", route, nil)
 	suite.w = httptest.NewRecorder()
-
+	c, _ = gin.CreateTestContext(suite.w)
+	c.Set("user_id", uint(1))
 	suite.router.ServeHTTP(suite.w, req)
 	suite.Require().Equal(http.StatusNotFound, suite.w.Code)
 
@@ -128,7 +131,7 @@ func (suite *UserControllerTestSuite) TestGetUserByID() {
 
 func (suite *UserControllerTestSuite) TestCreateNewUser() {
 	var route string = "/admin/members"
-	newGuy, _ := models.NewUser("kwest4", "ncsu", "Kanye", "West", "kwest4@ncsu.edu")
+	newGuy, _ := models.NewUser("kwest4", "ncsu", "Kanye", "West", "kwest4@ncsu.edu", models.MENS_LADDER)
 	marsh, _ := json.Marshal(newGuy)
 	req, _ := http.NewRequest("POST", route, bytes.NewBuffer(marsh))
 	req.Header.Set("Content-Type", "application/json")

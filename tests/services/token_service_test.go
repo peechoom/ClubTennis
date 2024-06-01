@@ -28,9 +28,9 @@ func (suite *TokenTestSuite) SetupTest() {
 	}
 
 	suite.ts = services.DefaultTokenService(repositories.NewTokenRepository())
-	suite.userA, _ = models.NewOfficer("kwest4", "ncsu", "Kanye", "West", "kwest4@ncsu.edu")
+	suite.userA, _ = models.NewOfficer("kwest4", "ncsu", "Kanye", "West", "kwest4@ncsu.edu", models.MENS_LADDER)
 	suite.userA.ID = 20
-	suite.userB, _ = models.NewUser("cwatts3", "unc", "Chris", "Watts", "cwatts3@unc.edu") //yes he went to UNC
+	suite.userB, _ = models.NewUser("cwatts3", "unc", "Chris", "Watts", "cwatts3@unc.edu", models.MENS_LADDER) //yes he went to UNC
 	suite.userB.ID = 87
 
 	suite.userA.Matches = make([]*models.Match, 0)

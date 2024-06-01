@@ -42,9 +42,9 @@ func (suite *MatchTestSuite) SetupTest() {
 	suite.userRepo = repositories.NewUserRepository(db)
 	suite.repo = repositories.NewMatchRepository(db)
 
-	suite.userA, _ = models.NewUser("bdoller4", "ncsu", "bowie", "doliver", "bdoller4@ncsu.edu")
+	suite.userA, _ = models.NewUser("bdoller4", "ncsu", "bowie", "doliver", "bdoller4@ncsu.edu", models.MENS_LADDER)
 	suite.userA.Rank = 4
-	suite.userB, _ = models.NewUser("qbingus5", "ncsu", "quevin", "bingus", "qbingus5@ncsu.edu")
+	suite.userB, _ = models.NewUser("qbingus5", "ncsu", "quevin", "bingus", "qbingus5@ncsu.edu", models.MENS_LADDER)
 	suite.userB.Rank = 5
 
 	if err = suite.userRepo.SubmitUser(suite.userA); err != nil {

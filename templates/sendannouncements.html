@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    
+    <!-- Trumbowyg CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.25.1/dist/ui/trumbowyg.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.25.1/dist/plugins/base64/trumbowyg.base64.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Send announcement</h1>
+        <textarea id="editor"></textarea>
+        <p>Max image size: 8MB. Select "image as base64" to attach a picture from your computer.</p>
+
+        <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" id="notifyAll">
+            <label class="form-check-label" for="notifyAll">
+                Notify all club members via email
+            </label>
+        </div>
+        <button class="btn btn-primary mt-3" onclick="sendContent()">Submit</button>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Trumbowyg JS -->
+    <script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.25.1/dist/trumbowyg.min.js"></script>
+    <!-- Trumbowyg Base64 Plugin JS -->
+    <script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.25.1/dist/plugins/base64/trumbowyg.base64.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            $('#editor').trumbowyg({
+                btns: [
+                    ['viewHTML'],
+                    ['formatting'],
+                    ['bold', 'italic', 'underline'],
+                    ['foreColor', 'backColor'],
+                    ['link'],
+                    ['insertImage', 'base64'],
+                    ['unorderedList', 'orderedList'],
+                    ['removeformat'],
+                    ['fullscreen']
+                ],
+                plugins: {
+                    // Initialize the base64 plugin
+                    base64: true
+                }
+            });
+        });
+
+        function sendContent() {
+            // Get the content from the textarea
+            const content = $('#editor').trumbowyg('html');
+            const notifyAll = $('#notifyAll').is(':checked');
+
+            // Send the data using fetch
+            fetch('/admin/announcements', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    body: content,
+                    notifyAll: notifyAll
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                alert('Announcement sent successfully!');
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        }
+    </script>
+</body>
+</html>

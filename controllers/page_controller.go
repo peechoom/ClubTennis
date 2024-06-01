@@ -45,3 +45,11 @@ func EditMembersHandler(c *gin.Context) {
 func ChallengeRulesHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "challengerules.html", nil)
 }
+
+func SendAnnouncementsHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "sendannouncements.html", nil)
+}
+
+func EditPublicPagesHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "editpublicpages.html", nil)
+}

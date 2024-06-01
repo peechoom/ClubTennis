@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,15 +28,60 @@ func NewUserController(userService *services.UserService, matchService *services
 /*
 	GET ../members
 
-gets all members. a quite heavy operation
+gets all members, only matches in the last 14 days are preloaded and all players are marked
+challengeable or not relative to the signed in principal
 */
 func (ctrl *UserController) GetAllMembers(c *gin.Context) {
 	users, err := ctrl.userservice.FindAll()
+
 	if err != nil {
 		c.Error(err)
 		c.String(http.StatusNotFound, "record not found")
 		return
 	}
+
+	uid := c.GetUint("user_id")
+	if uid == 0 {
+		//no user signed in, but authorized
+		c.JSON(http.StatusOK, users)
+		return
+	}
+	var p *models.User
+	for i := range users {
+		if users[i].ID == uid {
+			p = &users[i]
+			break
+		}
+	}
+	if p == nil {
+		//uid in list but not found... lets just return
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "userID provided but not found"})
+		return
+	}
+
+	var wg sync.WaitGroup
+	const WORKER_COUNT int = 6 // each user should get idk 6 threads. That makes what like 10 users per thread
+	userChannel := make(chan *models.User)
+
+	worker := func() {
+		defer wg.Done()
+		for u := range userChannel {
+			u.IsChallengeable, _ = p.CanChallenge(u)
+		}
+	}
+	for i := 0; i < WORKER_COUNT; i++ {
+		wg.Add(1)
+		go worker()
+	}
+	go func() {
+		for i := range users {
+			userChannel <- &users[i]
+		}
+		close(userChannel)
+	}()
+
+	wg.Wait()
+
 	c.JSON(http.StatusOK, users)
 }
 
@@ -79,7 +125,7 @@ func (ctrl *UserController) GetMemberByID(c *gin.Context) {
 // POST handlers
 /*
 	POST ../members
-	expects json containing fields: UnityID, FirstName, LastName, Affiliation, Email
+	expects json containing fields: UnityID, FirstName, LastName, Affiliation, Email, ladder
 
 creates a new member. responds with json representing the member. only admins should be able to call this
 */

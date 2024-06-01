@@ -17,6 +17,8 @@ type UserServiceTestSuite struct {
 	userC *models.User
 	userD *models.User
 	userE *models.User
+	userF *models.User
+	userG *models.User
 }
 
 // sets up before each test
@@ -37,12 +39,16 @@ func (suite *UserServiceTestSuite) SetupTest() {
 	}
 
 	suite.s = services.NewUserService(db)
-	suite.userA, _ = models.NewUser("shboil4", "ncsu", "Sam", "Boiland", "shboil4@ncsu.edu")
-	suite.userB, _ = models.NewUser("jbeno5", "ncsu", "James", "Benolli", "jbeno5@ncsu.edu")
-	suite.userC, _ = models.NewUser("pdiddy4", "ncsu", "Puff", "Daddy", "pdiddy@ncsu.edu")
-	suite.userD, _ = models.NewUser("jobitch2", "ncsu", "Joel", "Embitch", "jobitch@ncsu.edu")
-	suite.userE, _ = models.NewUser("myprince2", "ncsu", "Lebron", "James", "myprince2@ncsu.edu")
+	suite.userA, _ = models.NewUser("shboil4", "ncsu", "Sam", "Boiland", "shboil4@ncsu.edu", models.MENS_LADDER)
+	suite.userB, _ = models.NewUser("jbeno5", "ncsu", "James", "Benolli", "jbeno5@ncsu.edu", models.MENS_LADDER)
+	suite.userC, _ = models.NewUser("pdiddy4", "ncsu", "Puff", "Daddy", "pdiddy@ncsu.edu", models.MENS_LADDER)
+	suite.userD, _ = models.NewUser("jobitch2", "ncsu", "Joel", "Embitch", "jobitch@ncsu.edu", models.MENS_LADDER)
+	suite.userE, _ = models.NewUser("myprince2", "ncsu", "Lebron", "James", "myprince2@ncsu.edu", models.MENS_LADDER)
+	suite.userF, _ = models.NewUser("alhoot4", "ncsu", "Alison", "Hoot", "alhoot4@ncsu.edu", models.WOMENS_LADDER)
+	suite.userG, _ = models.NewUser("lray1", "ncsu", "Lana", "DelRay", "lray1@ncsu.edu", models.WOMENS_LADDER)
 
+	suite.userF.Rank = 1
+	suite.userG.Rank = 2
 	suite.userA.Rank = 1
 	suite.userB.Rank = 2
 	suite.userC.Rank = 3
@@ -54,6 +60,8 @@ func (suite *UserServiceTestSuite) SetupTest() {
 	suite.userC.Matches = make([]*models.Match, 0)
 	suite.userD.Matches = make([]*models.Match, 0)
 	suite.userE.Matches = make([]*models.Match, 0)
+	suite.userF.Matches = make([]*models.Match, 0)
+	suite.userG.Matches = make([]*models.Match, 0)
 
 }
 
@@ -72,7 +80,7 @@ func (suite *UserServiceTestSuite) TestServiceSaveFind() {
 
 	suite.s.Save(suite.userB, suite.userC, suite.userD, suite.userE)
 
-	u, err = suite.s.FindByRankRange(1, 5)
+	u, err = suite.s.FindByRankRange(models.MENS_LADDER, 1, 5)
 	suite.Require().NoError(err)
 	suite.Assert().Len(u, 5)
 
@@ -98,12 +106,14 @@ func (suite *UserServiceTestSuite) TestServiceFindByUnityID() {
 }
 
 func (suite *UserServiceTestSuite) TestLadderAlgo() {
-	suite.s.Save(suite.userA, suite.userB, suite.userC, suite.userD, suite.userE)
+	suite.s.Save(suite.userA, suite.userB, suite.userC, suite.userD, suite.userE, suite.userF, suite.userG)
 	suite.userA, _ = suite.s.FindByUnityID(suite.userA.UnityID)
 	suite.userB, _ = suite.s.FindByUnityID(suite.userB.UnityID)
 	suite.userC, _ = suite.s.FindByUnityID(suite.userC.UnityID)
 	suite.userD, _ = suite.s.FindByUnityID(suite.userD.UnityID)
 	suite.userE, _ = suite.s.FindByUnityID(suite.userE.UnityID)
+	suite.userF, _ = suite.s.FindByUnityID(suite.userF.UnityID)
+	suite.userG, _ = suite.s.FindByUnityID(suite.userG.UnityID)
 
 	suite.s.AdjustLadder(suite.userC, suite.userA)
 
@@ -112,12 +122,17 @@ func (suite *UserServiceTestSuite) TestLadderAlgo() {
 	suite.userC, _ = suite.s.FindByUnityID(suite.userC.UnityID)
 	suite.userD, _ = suite.s.FindByUnityID(suite.userD.UnityID)
 	suite.userE, _ = suite.s.FindByUnityID(suite.userE.UnityID)
+	suite.userF, _ = suite.s.FindByUnityID(suite.userF.UnityID)
+	suite.userG, _ = suite.s.FindByUnityID(suite.userG.UnityID)
 
 	suite.Assert().Equal(uint(1), suite.userC.Rank)
 	suite.Assert().Equal(uint(2), suite.userA.Rank)
 	suite.Assert().Equal(uint(3), suite.userB.Rank)
 	suite.Assert().Equal(uint(4), suite.userD.Rank)
 	suite.Assert().Equal(uint(5), suite.userE.Rank)
+
+	suite.Assert().Equal(uint(1), suite.userF.Rank)
+	suite.Assert().Equal(uint(2), suite.userG.Rank)
 
 	suite.s.AdjustLadder(suite.userC, suite.userA)
 
@@ -126,12 +141,17 @@ func (suite *UserServiceTestSuite) TestLadderAlgo() {
 	suite.userC, _ = suite.s.FindByUnityID(suite.userC.UnityID)
 	suite.userD, _ = suite.s.FindByUnityID(suite.userD.UnityID)
 	suite.userE, _ = suite.s.FindByUnityID(suite.userE.UnityID)
+	suite.userF, _ = suite.s.FindByUnityID(suite.userF.UnityID)
+	suite.userG, _ = suite.s.FindByUnityID(suite.userG.UnityID)
 
 	suite.Assert().Equal(uint(1), suite.userC.Rank)
 	suite.Assert().Equal(uint(2), suite.userA.Rank)
 	suite.Assert().Equal(uint(3), suite.userB.Rank)
 	suite.Assert().Equal(uint(4), suite.userD.Rank)
 	suite.Assert().Equal(uint(5), suite.userE.Rank)
+
+	suite.Assert().Equal(uint(1), suite.userF.Rank)
+	suite.Assert().Equal(uint(2), suite.userG.Rank)
 
 	suite.s.AdjustLadder(suite.userA, suite.userC)
 
@@ -140,12 +160,17 @@ func (suite *UserServiceTestSuite) TestLadderAlgo() {
 	suite.userC, _ = suite.s.FindByUnityID(suite.userC.UnityID)
 	suite.userD, _ = suite.s.FindByUnityID(suite.userD.UnityID)
 	suite.userE, _ = suite.s.FindByUnityID(suite.userE.UnityID)
+	suite.userF, _ = suite.s.FindByUnityID(suite.userF.UnityID)
+	suite.userG, _ = suite.s.FindByUnityID(suite.userG.UnityID)
 
 	suite.Assert().Equal(uint(1), suite.userA.Rank)
 	suite.Assert().Equal(uint(2), suite.userC.Rank)
 	suite.Assert().Equal(uint(3), suite.userB.Rank)
 	suite.Assert().Equal(uint(4), suite.userD.Rank)
 	suite.Assert().Equal(uint(5), suite.userE.Rank)
+
+	suite.Assert().Equal(uint(1), suite.userF.Rank)
+	suite.Assert().Equal(uint(2), suite.userG.Rank)
 
 	suite.s.AdjustLadder(suite.userE, suite.userD)
 
@@ -154,12 +179,17 @@ func (suite *UserServiceTestSuite) TestLadderAlgo() {
 	suite.userC, _ = suite.s.FindByUnityID(suite.userC.UnityID)
 	suite.userD, _ = suite.s.FindByUnityID(suite.userD.UnityID)
 	suite.userE, _ = suite.s.FindByUnityID(suite.userE.UnityID)
+	suite.userF, _ = suite.s.FindByUnityID(suite.userF.UnityID)
+	suite.userG, _ = suite.s.FindByUnityID(suite.userG.UnityID)
 
 	suite.Assert().Equal(uint(1), suite.userA.Rank)
 	suite.Assert().Equal(uint(2), suite.userC.Rank)
 	suite.Assert().Equal(uint(3), suite.userB.Rank)
 	suite.Assert().Equal(uint(4), suite.userE.Rank)
 	suite.Assert().Equal(uint(5), suite.userD.Rank)
+
+	suite.Assert().Equal(uint(1), suite.userF.Rank)
+	suite.Assert().Equal(uint(2), suite.userG.Rank)
 
 	suite.s.AdjustLadder(suite.userD, suite.userA)
 
@@ -168,12 +198,37 @@ func (suite *UserServiceTestSuite) TestLadderAlgo() {
 	suite.userC, _ = suite.s.FindByUnityID(suite.userC.UnityID)
 	suite.userD, _ = suite.s.FindByUnityID(suite.userD.UnityID)
 	suite.userE, _ = suite.s.FindByUnityID(suite.userE.UnityID)
+	suite.userF, _ = suite.s.FindByUnityID(suite.userF.UnityID)
+	suite.userG, _ = suite.s.FindByUnityID(suite.userG.UnityID)
 
 	suite.Assert().Equal(uint(1), suite.userD.Rank)
 	suite.Assert().Equal(uint(2), suite.userA.Rank)
 	suite.Assert().Equal(uint(3), suite.userC.Rank)
 	suite.Assert().Equal(uint(4), suite.userB.Rank)
 	suite.Assert().Equal(uint(5), suite.userE.Rank)
+
+	suite.Assert().Equal(uint(1), suite.userF.Rank)
+	suite.Assert().Equal(uint(2), suite.userG.Rank)
+
+	suite.s.AdjustLadder(suite.userG, suite.userF)
+
+	suite.userA, _ = suite.s.FindByUnityID(suite.userA.UnityID)
+	suite.userB, _ = suite.s.FindByUnityID(suite.userB.UnityID)
+	suite.userC, _ = suite.s.FindByUnityID(suite.userC.UnityID)
+	suite.userD, _ = suite.s.FindByUnityID(suite.userD.UnityID)
+	suite.userE, _ = suite.s.FindByUnityID(suite.userE.UnityID)
+	suite.userF, _ = suite.s.FindByUnityID(suite.userF.UnityID)
+	suite.userG, _ = suite.s.FindByUnityID(suite.userG.UnityID)
+
+	suite.Assert().Equal(uint(1), suite.userD.Rank)
+	suite.Assert().Equal(uint(2), suite.userA.Rank)
+	suite.Assert().Equal(uint(3), suite.userC.Rank)
+	suite.Assert().Equal(uint(4), suite.userB.Rank)
+	suite.Assert().Equal(uint(5), suite.userE.Rank)
+
+	suite.Assert().Equal(uint(2), suite.userF.Rank)
+	suite.Assert().Equal(uint(1), suite.userG.Rank)
+
 }
 
 func (suite *UserServiceTestSuite) TestDelete() {

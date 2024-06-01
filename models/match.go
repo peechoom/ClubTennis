@@ -81,25 +81,37 @@ func NewMatch(Challenger *User, Challenged *User) *Match {
 	return m
 }
 
+func (challenger *User) CanChallenge(challenged *User) (bool, error) {
+	if challenger.Ladder != challenged.Ladder {
+		return false, errors.New("cannot challenge players in other ladders")
+	}
+	if challenger.UnityID == challenged.UnityID {
+		return false, errors.New("players cannot challenge themselves")
+	}
+	if challenger.HasActiveMatch() {
+		return false, errors.New("challenger has an active challenge")
+	}
+	if challenged.HasActiveMatch() {
+		return false, errors.New("challenged player already has an active challenge")
+	}
+	if !challenger.IsWithinRangeOf(challenged) {
+		return false, errors.New("challenger rank is too low")
+	}
+	if challenger.HasRecentlyChallenged(challenged) {
+		return false, fmt.Errorf("challenger has challenged player within the last %d days", SamePlayerCooldownDays)
+	}
+
+	return true, nil
+}
+
 /*
 function for a user to challenge another user to a match.
 returns a pointer to the created match on success, or nil + error if error
 */
 func (challenger *User) Challenge(challenged *User) (*Match, error) {
-	if challenger.UnityID == challenged.UnityID {
-		return nil, errors.New("players cannot challenge themselves")
-	}
-	if challenger.HasActiveMatch() {
-		return nil, errors.New("challenger has an active challenge")
-	}
-	if challenged.HasActiveMatch() {
-		return nil, errors.New("challenged player already has an active challenge")
-	}
-	if !challenger.IsWithinRangeOf(challenged) {
-		return nil, errors.New("challenger rank is too low")
-	}
-	if challenger.HasRecentlyChallenged(challenged) {
-		return nil, fmt.Errorf("challenger has challenged player within the last %d days", SamePlayerCooldownDays)
+	c, err := challenger.CanChallenge(challenged)
+	if !c {
+		return nil, err
 	}
 
 	var match *Match = NewMatch(challenger, challenged)

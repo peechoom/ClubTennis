@@ -30,7 +30,7 @@ func (r *UserRepository) FindByID(ID uint) (*models.User, error) {
 // submits a new User to the DB
 func (r *UserRepository) SubmitUser(u *models.User) error {
 	var ranks []uint
-	r.db.Model(&models.User{}).Order("`rank` desc").Pluck("`rank`", &ranks).Limit(1)
+	r.db.Model(&models.User{}).Where(&models.User{Ladder: u.Ladder}).Order("`rank` desc").Pluck("`rank`", &ranks).Limit(1)
 	if len(ranks) > 0 {
 		u.Rank = ranks[0] + 1
 	} else {
@@ -81,13 +81,13 @@ func (r *UserRepository) FindByRank(Rank uint) (*models.User, error) {
 // returns all users with ranks in a given range, inclusive -> [lo, hi].
 // LoRank is the lower NUMBER jackass. we all know 1 is a "higher ranking" but not here
 // returns slice of USERS, --> NOT USER POINTERS <--
-func (r *UserRepository) FindByRankRange(LoRank uint, HiRank uint) ([]models.User, error) {
+func (r *UserRepository) FindByRankRange(LoRank uint, HiRank uint, Ladder string) ([]models.User, error) {
 	if LoRank > HiRank {
 		return nil, errors.New("LoRank must be lower than HiRank")
 	}
 
 	var u []models.User
-	err := r.db.Preload("Matches").Where("`rank` BETWEEN ? AND ?", LoRank, HiRank).Find(&u).Error
+	err := r.db.Preload("Matches").Where("`rank` BETWEEN ? AND ?", LoRank, HiRank).Where(&models.User{Ladder: Ladder}).Find(&u).Error
 
 	if err != nil {
 		return nil, err

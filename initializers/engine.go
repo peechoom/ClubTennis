@@ -38,5 +38,5 @@ func setRoutings(e *gin.Engine, db *gorm.DB) {
 	routes.SetAuthRoutes(e, s)
 	routes.SetAdminRoutes(e, s)
 	routes.SetClubRoutes(e, s)
-	routes.SetPublicRoutes(e)
+	routes.SetPublicRoutes(e, s)
 }

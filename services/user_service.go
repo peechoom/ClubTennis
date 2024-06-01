@@ -4,7 +4,6 @@ import (
 	"ClubTennis/models"
 	"ClubTennis/repositories"
 	"errors"
-	"log"
 	"sort"
 
 	"gorm.io/gorm"
@@ -41,12 +40,12 @@ func (s *UserService) saveMany(users []*User) error {
 	return err
 }
 
-// returns all users between rank a and b (inclusive)
-func (s *UserService) FindByRankRange(a uint, b uint) (u []User, err error) {
+// returns all users between rank a and b (inclusive) for the given ladder
+func (s *UserService) FindByRankRange(ladder string, a uint, b uint) (u []User, err error) {
 	if a > b {
-		u, err = s.repo.FindByRankRange(b, a)
+		u, err = s.repo.FindByRankRange(b, a, ladder)
 	} else {
-		u, err = s.repo.FindByRankRange(a, b)
+		u, err = s.repo.FindByRankRange(a, b, ladder)
 	}
 	return
 }
@@ -112,9 +111,12 @@ func (s *UserService) AdjustLadder(winner *User, loser *User) error {
 	if winner.Rank < loser.Rank {
 		return nil
 	}
+	if winner.Ladder != loser.Ladder {
+		return errors.New("cannot resolve, players are not in the same ladder")
+	}
 
 	var ladder []User
-	ladder, err := s.FindByRankRange(winner.Rank, loser.Rank)
+	ladder, err := s.FindByRankRange(winner.Ladder, winner.Rank, loser.Rank)
 
 	if err != nil {
 		return errors.New("rankings not adjusted, " + err.Error())
@@ -137,19 +139,10 @@ func ladderAlgo(ladder []User) {
 		return ladder[i].Rank < ladder[j].Rank
 	})
 	size := len(ladder)
-	for i := range ladder {
-		log.Print(ladder[i].FirstName)
-		log.Print(ladder[i].Rank)
-	}
-	log.Print("after applying:")
+
 	ladder[size-1].Rank = ladder[0].Rank
-	log.Print(ladder[size-1].FirstName)
-	log.Print(ladder[size-1].Rank)
 
 	for i := 0; i < size-1; i++ {
 		ladder[i].Rank++
-		log.Print(ladder[i].FirstName)
-		log.Print(ladder[i].Rank)
 	}
-	log.Print("---")
 }

@@ -22,6 +22,8 @@
         html, body {
             height: 100%;
             margin: 0;
+            overflow-y: hidden;
+
         }
         .container-fluid {
             display: flex;
@@ -72,32 +74,6 @@
             function hasActiveChallenge(member) {
                 return (typeof(member.Matches[0]) !== "undefined") && member.Matches[0].IsActive
             }
-            function isChallengeable(member) {
-                if($scope.me.ID == null || member.ID === $scope.me.ID) {
-                    console.log("my id:" + $scope.me.ID + " " + "their id: " + member.ID)
-                    return false
-                }
-                if(hasActiveChallenge($scope.me) || hasActiveChallenge(member)) {
-                    console.log("has active")
-                    return false
-                }
-                diff = $scope.me.Rank - member.Rank
-                console.log("diff: " + diff)
-                switch (true) {
-                    case $scope.me.Rank <= 10:
-                        return diff <= 2
-                    case $scope.me.Rank < 20:
-                        return diff <= 3
-                    case $scope.me.Rank <= 35:
-                        return diff <= 5
-                    }
-                return diff <= 8
-            }
-            function markChallengeable() {
-                $scope.members.forEach(element => {
-                    element.challengeable = isChallengeable(element)
-                });
-            }
 
             function loadMatches() {
                 return $http.get("/club/matches?player=" + $scope.me.ID).then(function(response) {
@@ -136,7 +112,6 @@
             function loadEverything() {
                 return loadMembers()
                     .then(loadMatches)
-                    .then(markChallengeable)
                     .then(mapMatches);
             }
             loadEverything();
@@ -240,9 +215,6 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/club/announcements">Announcements</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/contact">Contact</a>
-                        </li>
                     </ul>
                 </div>
             </div>
@@ -257,9 +229,10 @@
                     <h5 class="modal-title" id="challengeConfirmationModalLabel">Challenge Confirmation</h5>
                 </div>
                 <div class="modal-body">
-                    <p>You are about to challenge</p>
-                    <p><span><strong>{{challenged.FirstName}} {{challenged.LastName}}</strong></span></p>
+                    <p>You are about to challenge <strong>{{challenged.FirstName}} {{challenged.LastName}}</strong></p>
                     <p>continue?</p>
+                    <p ng-if="me.Rank < challenged.Rank"><strong>Losing this game will negatively affect your rank!</strong></p>
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -330,13 +303,15 @@
     <div class="container-fluid mt-5">
         <div class="row">
             <div class="col d-flex justify-content-between align-items-end">
-                <h1>Welcome, {{me.FirstName}}</h1>
+                <h1>Challenge</h1>
                 <div><a href="/club/challengerules" style="color:black"><h5>Challenge Rules</h5></a></div>
             </div>
         </div>
         
         <div class="table-container border border-black">
-            <h2>Men's Ladder</h2>
+            <h2 ng-if="me.Ladder === 'M'">Men's Ladder</h2>
+            <h2 ng-if="me.Ladder === 'W'">Women's Ladder</h2>
+
             <table class="table table-striped table-hover">
                 <thead>
                     <tr>
@@ -347,12 +322,12 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="member in members">
+                    <tr ng-repeat="member in members" ng-if="me.Ladder === member.Ladder">
                         <th scope="row">{{member.Rank}}</th>
                         <td>{{member.FirstName}} {{member.LastName}}</td>
                         <td>{{member.Email}}</td>
-                        <td ng-if="member.challengeable"><button class="btn btn-primary" type="button" ng-click="showChallengePopup(member)">Challenge</button></td>
-                        <td ng-if="!member.challengeable"><button class="btn btn-secondary" type="button" >Challenge</button></td>
+                        <td ng-if="member.IsChallengeable"><button class="btn btn-primary" type="button" ng-click="showChallengePopup(member)">Challenge</button></td>
+                        <td ng-if="!member.IsChallengeable"><button class="btn btn-secondary" type="button" >Challenge</button></td>
                     </tr>
                 </tbody>
             </table>

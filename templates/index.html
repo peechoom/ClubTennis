@@ -15,10 +15,36 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-
+    
+    <!-- AngularJS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.js"></script>
+    
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Custom CSS -->
+    <style>
+        .carousel-item img {
+            max-height: 60vh; /* Set the desired maximum height */
+            object-fit: cover;
+            width: 100%;
+        }
+    </style>
 </head>
 
-<body>
+<body ng-app="index" ng-controller="indexController">
+    <script> 
+        var app = angular.module('index', []);
+        app.controller('indexController', function($scope, $sce, $http) {
+            $scope.slides = [];
+            $scope.welcome = {};
+
+            $http.get("/slides").then(function(response) {
+                $scope.slides = response.data.sort((x, y) => x.SlideNum - y.SlideNum).map(x => x.Data);
+            });
+            $http.get("/welcome").then(function(response) {
+                $scope.welcome = $sce.trustAsHtml(response.data.Data);
+            });
+        });
+    </script>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
@@ -28,10 +54,10 @@
             </button>
 
             <!-- Navbar header/brand centered -->
-            <a class="navbar-brand mx-auto" href="/">Club Tennis</a>
+            <a class="navbar-brand mx-auto" href="/">NC STATE Club Tennis</a>
 
             <!-- Offcanvas navbar content -->
-            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+            <div class="offcanvas offcanvas-start offcanvas-red" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
                 <div class="offcanvas-header">
                     <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
                     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -41,12 +67,6 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/signin">Sign in</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/about">About</a>
-                        </li>
-                        <li class="nav-item">
-                          <a class="nav-link" href="/contact">Contact</a>
-                      </li>
                     </ul>
                 </div>
             </div>
@@ -55,10 +75,48 @@
 
     <!-- Content -->
     <div class="container mt-5">
-        <h1>Welcome to Club Tennis</h1>
-        <!-- Add your content here -->
-    </div>
+        <!-- Slideshow -->
+        <div id="slideshow" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item" ng-repeat="slide in slides track by $index" ng-class="{active: $index === 0}">
+                    <img ng-src="{{slide}}" class="d-block w-100" alt="homepage slideshow picture">
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#slideshow" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#slideshow" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
 
+        <!-- Lorem Ipsum Text -->
+        <div class="container mt-5">
+            <div ng-bind-html="welcome"></div>
+        </div>
+        <div style="padding: 0px; position: relative;">
+            <span style="font-size: 24px; color: rgba(0, 0, 0, 0.87); display: block; line-height: 36px;">
+                <h3 style="margin-top: 25px;"> Contact Information </h3>
+            </span>
+            <span style="font-size: 14px; color: rgba(0, 0, 0, 0.54); display: block;"></span>
+        </div>
+        <div class="container mb-5" >
+            <div style="margin-left: 5px; padding: 5px 15px; border-left: 1px solid rgb(210, 210, 210);">
+                <div>
+                    <div> 1000 Carmichael Gym Box 8111 </div>
+                    <div><span> Raleigh, </span> NC 27695 </div>
+                    <div> United States </div>
+                </div>
+                <div>
+                    <span class="sr-only"></span><strong> E: </strong> clubtennis.ncsu@gmail.com 
+                </div>
+            </div>
+            <a href="https://www.instagram.com/ncsuclubtennis/"><img src="/static/instagram-icon.png" alt="link to club tennis instagram account"/></a>
+            <a href="https://www.facebook.com/people/NC-State-Club-Tennis/100030791363654/"><img src="/static/facebook-icon.png" alt="link to club tennis facebook account"/></a>
+        </div>
+    </div>
 </body>
 
 </html>

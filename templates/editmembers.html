@@ -1,10 +1,12 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Club Tennis</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
 
 <body ng-app="newMember" ng-controller="controller">
@@ -12,102 +14,108 @@
     <!-- Include jQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <!-- Include Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
+    </script>
 
     <script>
-    var app = angular.module('newMember', []);
-    app.controller('controller', function($scope, $http) {
-        $scope.members = [];
-        $scope.editMode = false; // Variable to track edit mode
-        
-        // Function to load members
-        function loadMembers() {
-            $http.get("/club/members").then(function(response) {
-                $scope.members = response.data.sort((a, b) => a.Rank - b.Rank);
-            });
-        }
+        var app = angular.module('newMember', []);
+        app.controller('controller', function ($scope, $http) {
+            $scope.members = [];
+            $scope.editMode = false; // Variable to track edit mode
 
-        // Initial loading of members
-        loadMembers();
+            // Function to load members
+            function loadMembers() {
+                $http.get("/club/members").then(function (response) {
+                    $scope.members = response.data.sort((a, b) => a.Rank - b.Rank);
+                });
+            }
 
-        // Function to enable edit mode for a member
-        $scope.editMember = function(member) {
-            // Store the original values for canceling edits
-            $scope.originalMember = angular.copy(member);
-            $scope.editingMember = member;
-            $scope.editMode = true;
-        };
+            // Initial loading of members
+            loadMembers();
 
-        // Function to cancel edit mode and revert changes
-        $scope.cancelEdit = function() {
-            $scope.editingMember = null;
-            $scope.editMode = false;
-            // Revert changes to original values
-            $scope.members[$scope.members.indexOf($scope.editingMember)] = $scope.originalMember;
-        };
-
-        // Function to save edited member
-        $scope.saveMember = function() {
-            $http.put("/admin/members/" + $scope.editingMember.ID, $scope.editingMember).then(function(response) {
-                loadMembers(); // Reload members after saving
-                $scope.editingMember = null;
-                $scope.editMode = false;
-            });
-        };
-
-        // Function to remove a member
-        $scope.removeMember = function(memberID) {
-            $http.delete("/admin/members/" + memberID).then(function(response) {
-                loadMembers(); // Reload members after removing
-            });
-        };
-
-        // Function to add a new member
-        $scope.addMember = function() {
-            var newMember = {
-                FirstName: $scope.newFirstName,
-                LastName: $scope.newLastName,
-                UnityID: $scope.newUnityID,
-                Affiliation: $scope.newAffiliation,
-                Email: $scope.newEmail
+            // Function to enable edit mode for a member
+            $scope.editMember = function (member) {
+                // Store the original values for canceling edits
+                $scope.originalMember = angular.copy(member);
+                $scope.editingMember = member;
+                $scope.editMode = true;
             };
 
-            $http.post("/admin/members", newMember).then(function(response) {
-                loadMembers(); // Reload members after adding
-                // Clear input fields after adding
-                $scope.newFirstName = '';
-                $scope.newLastName = '';
-                $scope.newUnityID = '';
-                $scope.newAffiliation = '';
-                $scope.newEmail = '';
-            });
-        };
+            // Function to cancel edit mode and revert changes
+            $scope.cancelEdit = function () {
+                $scope.editingMember = null;
+                $scope.editMode = false;
+                // Revert changes to original values
+                $scope.members[$scope.members.indexOf($scope.editingMember)] = $scope.originalMember;
+            };
 
-        // Function to open delete confirmation modal
-        $scope.openDeleteModal = function(member) {
-            $scope.deletingMember = member;
-            $('#deleteConfirmationModal').modal('show'); // jQuery is used here
-        };
+            // Function to save edited member
+            $scope.saveMember = function () {
+                $http.put("/admin/members/" + $scope.editingMember.ID, $scope.editingMember).then(function (response) {
+                    loadMembers(); // Reload members after saving
+                    $scope.editingMember = null;
+                    $scope.editMode = false;
+                });
+            };
 
-        // Function to delete member
-        $scope.deleteMember = function(memberID) {
-            $http.delete("/admin/members/" + memberID).then(function(response) {
-                loadMembers(); // Reload members after removing
-                $('#deleteConfirmationModal').modal('hide'); // jQuery is used here
-            });
-        };
-    });
+            // Function to remove a member
+            $scope.removeMember = function (memberID) {
+                $http.delete("/admin/members/" + memberID).then(function (response) {
+                    loadMembers(); // Reload members after removing
+                });
+            };
+
+            // Function to add a new member
+            $scope.addMember = function () {
+                var newMember = {
+                    FirstName: $scope.newFirstName,
+                    LastName: $scope.newLastName,
+                    UnityID: $scope.newUnityID,
+                    Affiliation: $scope.newAffiliation,
+                    Email: $scope.newEmail,
+                    Ladder: $scope.newLadder
+                };
+
+                $http.post("/admin/members", newMember).then(function (response) {
+                    loadMembers(); // Reload members after adding
+                    // Clear input fields after adding
+                    $scope.newFirstName = '';
+                    $scope.newLastName = '';
+                    $scope.newUnityID = '';
+                    $scope.newAffiliation = '';
+                    $scope.newEmail = '';
+                    $scope.newLadder = '';
+                });
+            };
+
+            // Function to open delete confirmation modal
+            $scope.openDeleteModal = function (member) {
+                $scope.deletingMember = member;
+                $('#deleteConfirmationModal').modal('show'); // jQuery is used here
+            };
+
+            // Function to delete member
+            $scope.deleteMember = function (memberID) {
+                $http.delete("/admin/members/" + memberID).then(function (response) {
+                    loadMembers(); // Reload members after removing
+                    $('#deleteConfirmationModal').modal('hide'); // jQuery is used here
+                });
+            };
+        });
     </script>
 
     <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+    <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" role="dialog"
+        aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="deleteConfirmationModalLabel">Confirm Deletion</h5>
                 </div>
                 <div class="modal-body">
-                    Are you sure you want to delete <strong>{{ deletingMember.FirstName }} {{ deletingMember.LastName }}</strong>?
+                    Are you sure you want to delete <strong>{{ deletingMember.FirstName }} {{ deletingMember.LastName
+                        }}</strong>?
                     <p class="text-danger"><strong>This action cannot be undone.</strong></p>
                 </div>
                 <div class="modal-footer">
@@ -129,6 +137,7 @@
                     <th>Unity ID</th>
                     <th>Affiliation</th>
                     <th>Email</th>
+                    <th>Ladder</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -136,33 +145,49 @@
                 <tr ng-repeat="member in members">
                     <td>
                         <span ng-show="!editMode || editingMember != member">{{member.Rank}}</span>
-                        <input type="number" class="form-control" ng-show="editMode && editingMember == member" ng-model="member.Rank">
+                        <input type="number" class="form-control" ng-show="editMode && editingMember == member"
+                            ng-model="member.Rank">
                     </td>
                     <td>
                         <span ng-show="!editMode || editingMember != member">{{member.FirstName}}</span>
-                        <input type="text" class="form-control" ng-show="editMode && editingMember == member" ng-model="member.FirstName">
+                        <input type="text" class="form-control" ng-show="editMode && editingMember == member"
+                            ng-model="member.FirstName">
                     </td>
                     <td>
                         <span ng-show="!editMode || editingMember != member">{{member.LastName}}</span>
-                        <input type="text" class="form-control" ng-show="editMode && editingMember == member" ng-model="member.LastName">
+                        <input type="text" class="form-control" ng-show="editMode && editingMember == member"
+                            ng-model="member.LastName">
                     </td>
                     <td>
                         <span ng-show="!editMode || editingMember != member">{{member.UnityID}}</span>
-                        <input type="text" class="form-control" ng-show="editMode && editingMember == member" ng-model="member.UnityID">
+                        <input type="text" class="form-control" ng-show="editMode && editingMember == member"
+                            ng-model="member.UnityID">
                     </td>
                     <td>
                         <span ng-show="!editMode || editingMember != member">{{member.Affiliation}}</span>
-                        <input type="text" class="form-control" ng-show="editMode && editingMember == member" ng-model="member.Affiliation">
+                        <input type="text" class="form-control" ng-show="editMode && editingMember == member"
+                            ng-model="member.Affiliation">
                     </td>
                     <td>
                         <span ng-show="!editMode || editingMember != member">{{member.Email}}</span>
-                        <input type="text" class="form-control" ng-show="editMode && editingMember == member" ng-model="member.Email">
+                        <input type="text" class="form-control" ng-show="editMode && editingMember == member"
+                            ng-model="member.Email">
+                    </td>
+                    <td>
+                        <span ng-show="!editMode || editingMember != member">{{member.Ladder == 'M' ? 'Mens' : 'Womens'
+                            }}</span>
+                        <select class="form-select" ng-show="editMode && editingMember == member" ng-model="member.Ladder">
+                            <option value="M">Mens</option>
+                            <option value="W">Womens</option>
+                        </select>
                     </td>
                     <td>
                         <button class="btn btn-primary btn-sm" ng-click="editMember(member)" ng-show="!editMode">Edit</button>
-                        <button class="btn btn-success btn-sm" ng-click="saveMember()" ng-show="editMode && editingMember == member">Save</button>
+                        <button class="btn btn-success btn-sm" ng-click="saveMember()"
+                            ng-show="editMode && editingMember == member">Save</button>
                         <button class="btn btn-danger btn-sm" ng-click="openDeleteModal(member)" ng-show="!editMode">Delete</button>
-                        <button class="btn btn-secondary btn-sm" ng-click="cancelEdit()" ng-show="editMode && editingMember == member">Cancel</button>
+                        <button class="btn btn-secondary btn-sm" ng-click="cancelEdit()"
+                            ng-show="editMode && editingMember == member">Cancel</button>
                     </td>
                 </tr>
             </tbody>
@@ -190,6 +215,17 @@
                 <label for="newEmail" class="form-label">Email</label>
                 <input type="text" class="form-control" id="newEmail" ng-model="newEmail">
             </div>
+            <div class="mb-3">
+                <label class="form-label">Ladder</label>
+                <div>
+                    <input type="radio" id="newMensLadder" name="newLadder" value="M" ng-model="newLadder">
+                    <label for="newMensLadder">Mens</label>
+                </div>
+                <div>
+                    <input type="radio" id="newWomensLadder" name="newLadder" value="W" ng-model="newLadder">
+                    <label for="newWomensLadder">Womens</label>
+                </div>
+            </div>
             <button type="submit" class="btn btn-primary">Add Member</button>
         </form>
 
@@ -199,5 +235,5 @@
     </div>
 
 </body>
-</html>
 
+</html>

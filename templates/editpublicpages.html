@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    
+    <!-- Trumbowyg CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.25.1/dist/ui/trumbowyg.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.25.1/dist/plugins/base64/trumbowyg.base64.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Home Page Slideshow</h1>
+        <h3>Custom Welcome Page</h3>
+        <form id="welcomeForm">
+            <div class="mb-3">
+                <textarea id="welcomeEditor" class="form-control"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary mb-3">Save Welcome Page</button>
+        </form>
+        
+        <div class="mt-5">
+            <h3>Current Slides</h3>
+            <div id="currentSlides" class="row">
+                <!-- Slides will be displayed here -->
+            </div>
+        </div>
+        <h3>Upload New Slides</h3>
+        <form id="uploadForm">
+            <div class="mb-3">
+                <label for="file1" class="form-label">Slide 1</label>
+                <input class="form-control" type="file" id="file0" accept="image/*">
+            </div>
+            <div class="mb-3">
+                <label for="file2" class="form-label">Slide 2</label>
+                <input class="form-control" type="file" id="file1" accept="image/*">
+            </div>
+            <div class="mb-3">
+                <label for="file3" class="form-label">Slide 3</label>
+                <input class="form-control" type="file" id="file2" accept="image/*">
+            </div>
+            <div class="mb-3">
+                <label for="file4" class="form-label">Slide 4</label>
+                <input class="form-control" type="file" id="file3" accept="image/*">
+            </div>
+            <div class="mb-3">
+                <label for="file5" class="form-label">Slide 5</label>
+                <input class="form-control" type="file" id="file4" accept="image/*">
+            </div>
+            <button type="submit" class="btn btn-primary mb-5">Submit</button>
+        </form>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <!-- Trumbowyg JS -->
+    <script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.25.1/dist/trumbowyg.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Custom JS -->
+    <script>
+        $(document).ready(function() {
+            // Initialize Trumbowyg
+            $('#welcomeEditor').trumbowyg();
+
+            // Fetch and display current welcome page content
+            function fetchWelcomePage() {
+                $.get('/welcome', function(data) {
+                    $('#welcomeEditor').trumbowyg('html', data.Data);
+                });
+            }
+
+            // Fetch and display welcome page content on page load
+            fetchWelcomePage();
+
+            // Handle welcome form submission
+            $('#welcomeForm').on('submit', function(event) {
+                event.preventDefault();
+                const welcomeContent = $('#welcomeEditor').trumbowyg('html');
+                $.ajax({
+                    url: '/admin/welcome',
+                    type: 'PUT',
+                    data: JSON.stringify({ data: welcomeContent }),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        alert('Welcome page updated successfully');
+                    },
+                    error: function(error) {
+                        console.error('Error updating welcome page');
+                    }
+                });
+            });
+
+            // Function to fetch and display current slides
+            function fetchSlides() {
+                $.get('/slides', function(data) {
+                    $('#currentSlides').empty();
+                    data.sort((x, y) => x.SlideNum - y.SlideNum);
+                    data.forEach(function(slide, index) {
+                        const slideHTML = `
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <img src="${slide.Data}" class="card-img-top" alt="Slide ${index + 1}">
+                                    <div class="card-body">
+                                        <p class="card-text">Slide ${index + 1}</p>
+                                    </div>
+                                </div>
+                            </div>`;
+                        $('#currentSlides').append(slideHTML);
+                    });
+                });
+            }
+
+            // Fetch and display slides on page load
+            fetchSlides();
+
+            // Form submit event for slides upload
+            $('#uploadForm').on('submit', function(event) {
+                event.preventDefault();
+
+                for (let i = 0; i < 5; i++) {
+                    const fileInput = document.getElementById('file' + i);
+                    const file = fileInput.files[0];
+
+                    // Check if file is present
+                    if (file) {
+                        if (file.size > 10 * 1024 * 1024) {
+                            alert('File ' + i + ' is larger than 10 MB');
+                            return;
+                        }
+
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const base64Data = 'data:image/' + file.type.split('/')[1] + ';base64,' + e.target.result.split(',')[1]; // Add prefix
+                            $.ajax({
+                                url: '/admin/slides/' + i,
+                                type: 'PUT',
+                                data: JSON.stringify({ data: base64Data }),
+                                contentType: 'application/json',
+                                success: function(response) {
+                                    console.log('File ' + i + ' uploaded successfully');
+                                    // Clear the file input field
+                                    fileInput.value = '';
+                                    // Fetch and update the slides after upload
+                                    fetchSlides();
+                                    for (let i = 0; i < 5; i++) {
+                                        document.getElementById('file' + i).value = '';
+                                    }
+                                },
+                                error: function(error) {
+                                    console.error('Error uploading file ' + i);
+                                }
+                            });
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

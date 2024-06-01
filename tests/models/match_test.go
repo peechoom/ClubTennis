@@ -12,8 +12,8 @@ type User = models.User
 type Match = models.Match
 
 func getTestUsers() (*User, *User) {
-	userA, _ := models.NewUser("ajhende3", "ncsu", "Alec", "Henderson", "whatever@ncsu.edu")
-	userB, _ := models.NewUser("alhunt6", "ncsu", "Alison", "Hunt", "hello@skema.edu")
+	userA, _ := models.NewUser("ajhende3", "ncsu", "Alec", "Henderson", "whatever@ncsu.edu", models.MENS_LADDER)
+	userB, _ := models.NewUser("alhunt6", "ncsu", "Alison", "Hunt", "hello@skema.edu", models.MENS_LADDER)
 
 	userA.ID = 1
 	userB.ID = 2
@@ -97,7 +97,7 @@ func TestChallengeValid(t *testing.T) {
 // test that a user cannot challenge/be challeneged with an active match
 func TestChallengeInvalidActive(t *testing.T) {
 	userA, userB := getTestUsersWithRanks(3, 4)
-	userC, _ := models.NewUser("jdallard", "ncsu", "Jason", "Allard", "abcdefg@ecu.edu")
+	userC, _ := models.NewUser("jdallard", "ncsu", "Jason", "Allard", "abcdefg@ecu.edu", models.MENS_LADDER)
 	userC.ID = 3
 	userC.Rank = 5
 
