@@ -13,15 +13,16 @@ type Announcement struct {
 	CreatedAt time.Time `gorm:"index:,sort:desc,type:btree"` //always sorted desc
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
+	Subject   string         `gorm:"-:all"` // the subject line for when this announcement is sent over email. not saved
 	Data      string         //the HTML for this announcement. Can include encoded images. encoded in base64
 }
 
 // TODO migrations, controllers
-func NewAnnouncement(data string) *Announcement {
-	if !IsCleanHTML(data) {
+func NewAnnouncement(data, subject string) *Announcement {
+	if !IsCleanHTML(data) || len(subject) > 900 {
 		return nil
 	}
-	return &Announcement{Data: data}
+	return &Announcement{Data: data, Subject: subject}
 
 }
 

@@ -27,7 +27,7 @@ func NewAuthenticator(tokenService *services.TokenService, userService *services
 func (a *Authenticator) AuthenticateMember(c *gin.Context) {
 	var err error
 	idTokenString, err := c.Cookie("id_token")
-	if err != nil {
+	if err != nil && err != http.ErrNoCookie {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
@@ -70,7 +70,7 @@ func (a *Authenticator) AuthenticateAdmin(c *gin.Context) {
 		return
 	}
 	userID, err = a.cycleRefreshTokens(c)
-	if err != nil {
+	if err != nil || userID == 0 {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return

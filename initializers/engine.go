@@ -34,7 +34,7 @@ func GetTestEngine() *gin.Engine {
 }
 
 func setRoutings(e *gin.Engine, db *gorm.DB) {
-	s := services.SetupServices(db)
+	s := services.SetupServices(db, "templates")
 	routes.SetAuthRoutes(e, s)
 	routes.SetAdminRoutes(e, s)
 	routes.SetClubRoutes(e, s)

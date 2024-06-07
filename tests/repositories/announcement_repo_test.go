@@ -40,7 +40,7 @@ func TestAnnouncementRepo(t *testing.T) {
 
 func (suite *AnnouncementTestSuite) TestSubmitGetAnnouncements() {
 	post := string("<h1>Test</h1><p>this is a test blah blah blah whatever </p>")
-	ann := models.NewAnnouncement(post)
+	ann := models.NewAnnouncement(post, "")
 	suite.Require().NoError(suite.repo.SubmitAnnouncement(ann))
 
 	f, e := suite.repo.GetAnnouncementPage(0, 5)
@@ -54,7 +54,7 @@ func (suite *AnnouncementTestSuite) TestSubmitGetAnnouncements() {
 func (suite *AnnouncementTestSuite) TestPages() {
 	for i := 11; i >= 0; i-- {
 		post := string(fmt.Sprintf("<h1>Test</h1><p>this is page %d </p>", i))
-		ann := models.NewAnnouncement(post)
+		ann := models.NewAnnouncement(post, "")
 		suite.Require().NoError(suite.repo.SubmitAnnouncement(ann))
 	}
 

@@ -340,7 +340,7 @@
                         <td><i><strong>{{match.Challenger.FirstName}}</strong> ({{match.ChallengerRank}}) challenged <strong>{{match.Challenged.FirstName}}</strong> ({{match.ChallengedRank}})</i></td>
                         <td><p ng-class="{'text-winner': match.result === 'Won', 'text-loser': match.result === 'Lost'}"><strong>{{match.result}}</strong></p></td>
                         <td ng-if="match.Score !== 0">{{match.challengerScore}} - {{match.challengedScore}}</td>
-                        <td ng-if="match.Score === 0">&#128345</td>
+                        <td ng-if="match.Score === 0"><button class="btn btn-primary" ng-click="showSubmitPopup(match)">Submit Score</button></td>
                     </tr>
                 </tbody>
             </table>

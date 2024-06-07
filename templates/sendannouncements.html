@@ -23,6 +23,12 @@
                 Notify all club members via email
             </label>
         </div>
+
+        <div class="mt-3" id="subjectContainer" style="display: none;">
+            <label for="subject" class="form-label">Email Subject</label>
+            <input type="text" class="form-control" id="subject">
+        </div>
+
         <button class="btn btn-primary mt-3" onclick="sendContent()">Submit</button>
     </div>
 
@@ -50,16 +56,24 @@
                     ['fullscreen']
                 ],
                 plugins: {
-                    // Initialize the base64 plugin
                     base64: true
+                }
+            });
+
+            // Show/hide subject input based on notifyAll checkbox
+            $('#notifyAll').change(function() {
+                if ($(this).is(':checked')) {
+                    $('#subjectContainer').show();
+                } else {
+                    $('#subjectContainer').hide();
                 }
             });
         });
 
         function sendContent() {
-            // Get the content from the textarea
             const content = $('#editor').trumbowyg('html');
             const notifyAll = $('#notifyAll').is(':checked');
+            const subject = notifyAll ? $('#subject').val() : '';
 
             // Send the data using fetch
             fetch('/admin/announcements', {
@@ -69,7 +83,8 @@
                 },
                 body: JSON.stringify({ 
                     body: content,
-                    notifyAll: notifyAll
+                    notifyAll: notifyAll,
+                    subject: subject
                 })
             })
             .then(response => response.json())

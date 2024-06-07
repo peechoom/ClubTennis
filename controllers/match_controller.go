@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"ClubTennis/models"
 	"ClubTennis/services"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -21,12 +23,14 @@ const RECENT_TIME_SPAN = 7 * time.Hour * 24
 type MatchController struct {
 	matchservice *services.MatchService
 	userservice  *services.UserService
+	emailservice *services.EmailService
 }
 
-func NewMatchController(matchService *services.MatchService, userService *services.UserService) *MatchController {
+func NewMatchController(matchService *services.MatchService, userService *services.UserService, emailService *services.EmailService) *MatchController {
 	return &MatchController{
 		matchservice: matchService,
 		userservice:  userService,
+		emailservice: emailService,
 	}
 }
 
@@ -103,7 +107,7 @@ func (ctrl *MatchController) GetMatch(c *gin.Context) {
 			return
 		}
 		fetched, err := ctrl.matchservice.FindByPlayerID(ls...)
-		if err != nil || fetched == nil || len(fetched) == 0 {
+		if err != nil {
 			c.Error(err)
 			return
 		}
@@ -205,7 +209,38 @@ func (ctrl *MatchController) Challenge(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "Internal error")
 		return
 	}
-	c.JSON(http.StatusCreated, *match)
+	e := ctrl.notifyPlayers(c, match)
+
+	if e != nil {
+		if e != errChallengerNotNotified {
+			c.String(http.StatusInternalServerError, fmt.Sprintf("Challenge created but emails failed to generate. Please contact %s to let %s know about the challenge.", challenged.Email, challenged.FirstName))
+		} else {
+			c.String(http.StatusAccepted, fmt.Sprintf("Challenge created successfully, but due to an internal server error you will not be emailed a reciept. %s has been sucessfully contacted, and should contact you soon", challenged.FirstName))
+		}
+	} else {
+		c.JSON(http.StatusCreated, *match)
+	}
+}
+
+var errChallengedNotNotified error = errors.New("challenged player not notified")
+var errChallengerNotNotified error = errors.New("challenger not notified")
+
+func (ctrl *MatchController) notifyPlayers(c *gin.Context, match *models.Match) error {
+	challengerEmail, challengedEmail := ctrl.emailservice.MakeChallengeEmails(match.Challenger(), match.Challenged())
+	if challengerEmail == nil || challengedEmail == nil {
+		e := errors.New("could not create emails")
+		c.Error(e)
+		return e
+	}
+	if ctrl.emailservice.Send(challengedEmail) != nil {
+		c.Error(errChallengedNotNotified)
+		return errChallengedNotNotified
+	}
+	if ctrl.emailservice.Send(challengerEmail) != nil {
+		c.Error(errChallengerNotNotified)
+		return errChallengerNotNotified
+	}
+	return nil
 }
 
 //----------------------------------------------------------------------------------------------------------------

@@ -274,7 +274,7 @@
         
         <div class="table-container">
             <h2>Recent Matches</h2>
-            <table class="table table-hover">
+            <table class="table table-hover" ng-if="matches.length > 0">
                 <tbody>
                     <tr ng-repeat="match in matches" >
                         <td><i><strong>{{match.Challenger.FirstName}}</strong> ({{match.ChallengerRank}}) challenged <strong>{{match.Challenged.FirstName}}</strong> ({{match.ChallengedRank}})</i></td>
@@ -284,6 +284,9 @@
                     </tr>
                 </tbody>
             </table>
+            <div class="d-flex align-items-center justify-content-center">
+                <p ng-if="matches.length <= 0"><i>No recent matches</i></p>
+            </div>
         </div>
     </div>
 

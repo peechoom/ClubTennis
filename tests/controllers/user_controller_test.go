@@ -45,7 +45,7 @@ func (suite *UserControllerTestSuite) SetupTest() {
 	if err != nil {
 		panic(err)
 	}
-	s := services.SetupServices(db)
+	s := services.SetupServices(db, "/home/alec/go/src/ClubTennis/templates")
 	suite.ctrl = controllers.NewUserController(s.UserService, s.MatchService)
 	suite.ms = s.MatchService
 	suite.us = s.UserService

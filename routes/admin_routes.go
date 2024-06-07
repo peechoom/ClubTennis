@@ -13,7 +13,7 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 	// var matchCtrl controllers.MatchController = *controllers.NewMatchController(db)
 	var userCtrl *controllers.UserController = controllers.NewUserController(s.UserService, s.MatchService)
 	// var auth middleware.Authenticator = *middleware.NewAuthenticator(s.TokenService, s.UserService, os.Getenv("SERVER_HOST"))
-	var annCtrl *controllers.AnnouncementController = controllers.NewAnnouncementController(s.AnnouncementService)
+	var annCtrl *controllers.AnnouncementController = controllers.NewAnnouncementController(s.AnnouncementService, s.EmailService, s.UserService)
 	var pubCtrl *controllers.PublicController = controllers.NewPublicController(s.PublicService)
 	{
 		//TODO make admin accounts saveable to a file or sumn

@@ -28,7 +28,18 @@ func NewPublicService(db *gorm.DB) *PublicService {
 	if (&s).ensureSlideCount() != nil {
 		return nil
 	}
+	if (&s).ensureHomepage() != nil {
+		return nil
+	}
 	return &s
+}
+
+func (s *PublicService) ensureHomepage() error {
+	_, e := s.GetCustomHomePage()
+	if e == nil {
+		return nil
+	}
+	return s.SetCustomHomePage(models.NewSnippet("", "<h2>NC State Club Tennis</h2><p>Custom homepage has not been set up yet!</p>"))
 }
 
 // ensures there are 5 slides. fills in missing slides with nc state wallpaper
