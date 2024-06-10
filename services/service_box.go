@@ -15,6 +15,7 @@ type ServiceContainer struct {
 	AnnouncementService *AnnouncementService
 	PublicService       *PublicService
 	EmailService        *EmailService
+	ImageService        *ImageService
 }
 
 func SetupServices(db *gorm.DB, emailTemplatesDir string) *ServiceContainer {
@@ -23,6 +24,7 @@ func SetupServices(db *gorm.DB, emailTemplatesDir string) *ServiceContainer {
 	matchService := NewMatchService(db)
 	announcementService := NewAnnouncementService(db)
 	publicService := NewPublicService(db)
+	ImageService := NewImageService(db)
 
 	uname := os.Getenv("EMAIL_USERNAME")
 	pw := os.Getenv("EMAIL_PASSWORD")
@@ -38,5 +40,6 @@ func SetupServices(db *gorm.DB, emailTemplatesDir string) *ServiceContainer {
 		AnnouncementService: announcementService,
 		PublicService:       publicService,
 		EmailService:        emailService,
+		ImageService:        ImageService,
 	}
 }

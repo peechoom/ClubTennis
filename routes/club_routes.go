@@ -14,7 +14,7 @@ func SetClubRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 	clubGroup := engine.Group("/club")
 	var matchCtrl *controllers.MatchController = controllers.NewMatchController(s.MatchService, s.UserService, s.EmailService)
 	var userCtrl *controllers.UserController = controllers.NewUserController(s.UserService, s.MatchService)
-	var annCtrl *controllers.AnnouncementController = controllers.NewAnnouncementController(s.AnnouncementService, s.EmailService, s.UserService)
+	var annCtrl *controllers.AnnouncementController = controllers.NewAnnouncementController(s.AnnouncementService, s.EmailService, s.UserService, s.ImageService)
 	var auth *middleware.Authenticator = middleware.NewAuthenticator(s.TokenService, s.UserService, os.Getenv("SERVER_HOST"))
 	{
 		clubGroup.Use(auth.AuthenticateMember)

@@ -11,13 +11,14 @@ import (
 
 type PublicController struct {
 	publicService *services.PublicService
+	imageService  *services.ImageService
 }
 
-func NewPublicController(publicService *services.PublicService) *PublicController {
+func NewPublicController(publicService *services.PublicService, imageservice *services.ImageService) *PublicController {
 	if publicService == nil {
 		return nil
 	}
-	return &PublicController{publicService: publicService}
+	return &PublicController{publicService: publicService, imageService: imageservice}
 }
 
 // --------------------------------------------------------------------------------------
@@ -50,6 +51,26 @@ func (p *PublicController) GetWelcome(c *gin.Context) {
 	}
 	//maybe this should be json idk
 	c.JSON(http.StatusOK, s)
+}
+
+/*
+	GET .../images/{filename}
+
+gets an image from the database. static images are handled with a request to /static/{filename}
+*/
+func (p *PublicController) GetImage(c *gin.Context) {
+	filename := c.Param("filename")
+	if filename == "" {
+		c.JSON(http.StatusNotFound, gin.H{"error": "image not found"})
+		return
+	}
+	img := p.imageService.Get(filename)
+	if img == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "image not found"})
+		return
+	}
+
+	c.Data(http.StatusOK, "image/"+img.Extension, img.Data)
 }
 
 // --------------------------------------------------------------------------------------

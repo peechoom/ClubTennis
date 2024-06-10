@@ -11,12 +11,13 @@ import (
 func GetEngine() *gin.Engine {
 	e := gin.Default()
 
-	//TODO make absolute path an env variable that we fetch
+	//TODO make absolute path an env variable that we fetch. or dont, just use docker
 	e = e.Delims("{[{", "}]}")
 	e.LoadHTMLGlob("templates/*.html")
 	db := GetDatabase()
 	setRoutings(e, db)
-
+	//probably best to leave this off
+	e.SetTrustedProxies(nil)
 	return e
 }
 

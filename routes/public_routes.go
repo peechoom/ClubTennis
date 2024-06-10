@@ -2,6 +2,7 @@ package routes
 
 import (
 	"ClubTennis/controllers"
+	"ClubTennis/middleware"
 	"ClubTennis/services"
 
 	"github.com/gin-gonic/gin"
@@ -10,7 +11,7 @@ import (
 // sets up the routings for endpoints that anyone can access
 func SetPublicRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 	r := engine
-	pubCtrl := controllers.NewPublicController(s.PublicService)
+	pubCtrl := controllers.NewPublicController(s.PublicService, s.ImageService)
 	{
 		r.GET("/", controllers.HomeHandler)
 		r.GET("/index.html", controllers.HomeHandler)
@@ -24,7 +25,14 @@ func SetPublicRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 		r.GET("/slides", pubCtrl.GetSlideshow)
 		r.GET("/welcome", pubCtrl.GetWelcome)
 
-		r.Static("/static", "./static")
-		r.StaticFile("/favicon.ico", "./favicon.ico")
+		staticGroup := r.Group("/static")
+		{
+			staticGroup.Use(middleware.GetCors())
+			staticGroup.Static("/", "./static")
+			r.StaticFile("/favicon.ico", "./favicon.ico")
+		}
+
+		//for getting images.
+		r.GET("/images/:filename", pubCtrl.GetImage)
 	}
 }

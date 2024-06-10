@@ -1,10 +1,14 @@
 package models
 
 import (
+	"bytes"
+	"fmt"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
 
+	"golang.org/x/net/html"
 	"gorm.io/gorm"
 )
 
@@ -81,4 +85,54 @@ func IsCleanHTML(data string) bool {
 		}
 	}
 	return !ret
+}
+
+// strips image objects from an announcement and replaces them with <img src={link}/> tags
+func (ann *Announcement) StripImages(path string) ([]*Image, error) {
+	path += "/"
+	re := regexp.MustCompile(`data:image/([^\s";]+);base64,([^\s"]+)`)
+
+	doc, err := html.Parse(strings.NewReader(ann.Data))
+	if err != nil {
+		fmt.Println("Error parsing HTML:", err)
+		return nil, err
+	}
+
+	// Replace Base64 data
+	var images []*Image
+	findAndReplace(doc, path, &images, re)
+
+	var buf bytes.Buffer
+	if err := html.Render(&buf, doc); err != nil {
+		return nil, fmt.Errorf("error rendering HTML: %v", err)
+	}
+	ann.Data = buf.String()
+
+	return images, nil
+}
+
+func findAndReplace(n *html.Node, path string, images *[]*Image, re *regexp.Regexp) {
+	if n.Type == html.ElementNode && n.Data == "img" {
+		for i, attr := range n.Attr {
+			if attr.Key == "src" && strings.HasPrefix(attr.Val, "data:image") && strings.Contains(attr.Val, "base64") {
+				match := re.FindSubmatch([]byte(attr.Val))
+				var data string
+				var ex string
+				if len(match) > 2 {
+					ex = string(match[1])
+					data = string(match[2])
+				} else {
+					break
+				}
+
+				img := NewImage(data, ex)
+				*images = append(*images, img)
+				n.Attr[i].Val = path + img.FileName
+				break
+			}
+		}
+	}
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		findAndReplace(c, path, images, re)
+	}
 }

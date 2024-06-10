@@ -4,7 +4,9 @@ import (
 	"ClubTennis/models"
 	"ClubTennis/services"
 	"errors"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -14,10 +16,22 @@ type AnnouncementController struct {
 	announcementService *services.AnnouncementService
 	userService         *services.UserService
 	emailService        *services.EmailService
+	imageService        *services.ImageService
+	serverHost          string //this servers host. for stripping images and replacing with links
 }
 
-func NewAnnouncementController(announcementService *services.AnnouncementService, emailService *services.EmailService, userService *services.UserService) *AnnouncementController {
-	return &AnnouncementController{announcementService: announcementService, emailService: emailService, userService: userService}
+func NewAnnouncementController(announcementService *services.AnnouncementService, emailService *services.EmailService, userService *services.UserService, imageService *services.ImageService) *AnnouncementController {
+	host := os.Getenv("SERVER_HOST")
+	port := os.Getenv("SERVER_PORT")
+	if host == "" || port == "" {
+		log.Fatal("host and/or port not specified in .env file")
+	}
+	return &AnnouncementController{
+		announcementService: announcementService,
+		emailService:        emailService,
+		userService:         userService,
+		imageService:        imageService,
+		serverHost:          "http://" + host + ":" + port}
 }
 
 //---------------------------------------------------------------------------------------------------------
@@ -70,7 +84,23 @@ func (a *AnnouncementController) SubmitPost(c *gin.Context) {
 		return
 	}
 
-	err := a.announcementService.SubmitAnnouncement(ann)
+	//strip image base64's from announcement and replace them with links that trigger GET's from image repo
+	images, err := ann.StripImages(a.serverHost + "/images")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not parse html doc"})
+		return
+	}
+
+	for _, img := range images {
+		err := a.imageService.Save(img)
+		if err != nil {
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save image"})
+			return
+		}
+	}
+
+	err = a.announcementService.SubmitAnnouncement(ann)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save announcement"})

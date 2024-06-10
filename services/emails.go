@@ -2,6 +2,7 @@ package services
 
 import (
 	"ClubTennis/models"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -61,7 +62,10 @@ func (s *EmailService) populateTemplate(template string, v map[string]string) (s
 
 // makes the values map for populating a challenge email template
 func challengeEmailMap(challenger, challenged *User) (map[string]string, error) {
-	v := make(map[string]string)
+	v := commonEmailMap()
+	if v == nil {
+		return nil, errors.New("env variables not defined")
+	}
 
 	v[sentinalOpen+"challenger_firstname"+sentinalClose] = challenger.FirstName
 	v[sentinalOpen+"challenger_lastname"+sentinalClose] = challenger.LastName
@@ -90,7 +94,10 @@ func announcementEmailMap(ann *models.Announcement) (map[string]string, error) {
 		return date.Year() == now.Year() && date.YearDay() == now.YearDay()
 	}
 
-	v := make(map[string]string)
+	v := commonEmailMap()
+	if v == nil {
+		return nil, errors.New("env variables not defined")
+	}
 	v[sentinalOpen+"announcement_body"+sentinalClose] = ann.Data
 
 	var prefix string = ""
@@ -106,4 +113,28 @@ func announcementEmailMap(ann *models.Announcement) (map[string]string, error) {
 	}
 
 	return v, nil
+}
+
+func commonEmailMap() map[string]string {
+	host := os.Getenv("SERVER_HOST")
+	port := os.Getenv("SERVER_PORT")
+
+	if host == "" || port == "" {
+		return nil
+	}
+	v := make(map[string]string)
+
+	link := "http://" + host + ":" + port + "/static/"
+
+	v[sentinalOpen+"tuffy_head_small_link"+sentinalClose] = link + "tuffy-small.webp"
+	v[sentinalOpen+"wolfpack_regular_link"+sentinalClose] = link + "Wolfpack-Regular.woff2"
+	v[sentinalOpen+"united_sans_regbold_link"+sentinalClose] = link + "UnitedSansReg-Bold.woff2"
+	v[sentinalOpen+"gotham_narrow_bold_link"+sentinalClose] = link + "GothamNarrow-Bold.woff2"
+	v[sentinalOpen+"gotham_narrow_bold_italic_link"+sentinalClose] = link + "GothamNarrow-BoldItalic.woff2"
+	v[sentinalOpen+"gotham_narrow_book_link"+sentinalClose] = link + "GothamNarrow-Book.woff2"
+	v[sentinalOpen+"gotham_narrow_book_italic_link"+sentinalClose] = link + "GothamNarrow-BookItalic.woff2"
+	v[sentinalOpen+"gotham_narrow_medium_link"+sentinalClose] = link + "GothamNarrow-Medium.woff2"
+	v[sentinalOpen+"gotham_narrow_medium_italic_link"+sentinalClose] = link + "GothamNarrow-MediumItalic.woff2"
+
+	return v
 }

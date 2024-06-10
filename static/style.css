@@ -6,7 +6,7 @@
 }
 @font-face {
     font-family: 'United-Sans-Regular-Bold';
-    src: url('/static/UnitedSansReg-Bold.otf') format('opentype');
+    src: url('/static/UnitedSansReg-Bold.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
 }
@@ -14,28 +14,28 @@
 
 @font-face {
     font-family: 'Gotham-Narrow-Medium';
-    src: url('/static/GothamNarrow-Medium.otf') format('opentype');
+    src: url('/static/GothamNarrow-Medium.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'Gotham-Narrow-Book';
-    src: url('/static/GothamNarrow-Book.otf') format('opentype');
+    src: url('/static/GothamNarrow-Book.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'Gotham-Narrow-BookItalic';
-    src: url('/static/GothamNarrow-BookItalic.otf') format('opentype');
+    src: url('/static/GothamNarrow-BookItalic.woff2') format('woff2');
     font-weight: normal;
     font-style: italic;
 }
 
 @font-face {
     font-family: 'Gotham-Narrow-MediumItalic';
-    src: url('/static/GothamNarrow-MediumItalic.otf') format('opentype');
+    src: url('/static/GothamNarrow-MediumItalic.woff2') format('woff2');
     font-weight: normal;
     font-style: italic;
 }

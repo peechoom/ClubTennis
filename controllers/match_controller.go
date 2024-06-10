@@ -203,12 +203,15 @@ func (ctrl *MatchController) Challenge(c *gin.Context) {
 		return
 	}
 
+	//TODO this could also be made a goroutine hmmmmmm.....
 	err = ctrl.matchservice.Save(match)
 	if err != nil {
 		c.Error(err)
 		c.String(http.StatusInternalServerError, "Internal error")
 		return
 	}
+	//TODO could be a goroutine, but would not notify the user if an error happens :(
+	// this shit is whats slow tho
 	e := ctrl.notifyPlayers(c, match)
 
 	if e != nil {
@@ -218,7 +221,8 @@ func (ctrl *MatchController) Challenge(c *gin.Context) {
 			c.String(http.StatusAccepted, fmt.Sprintf("Challenge created successfully, but due to an internal server error you will not be emailed a reciept. %s has been sucessfully contacted, and should contact you soon", challenged.FirstName))
 		}
 	} else {
-		c.JSON(http.StatusCreated, *match)
+
+		c.JSON(http.StatusCreated, gin.H{"message": "Challenge created successfully"})
 	}
 }
 
