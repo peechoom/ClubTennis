@@ -2,7 +2,9 @@ package routes
 
 import (
 	"ClubTennis/controllers"
+	"ClubTennis/middleware"
 	"ClubTennis/services"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,12 +14,11 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 	adminGroup := engine.Group("/admin")
 	// var matchCtrl controllers.MatchController = *controllers.NewMatchController(db)
 	var userCtrl *controllers.UserController = controllers.NewUserController(s.UserService, s.MatchService)
-	// var auth middleware.Authenticator = *middleware.NewAuthenticator(s.TokenService, s.UserService, os.Getenv("SERVER_HOST"))
+	var auth middleware.Authenticator = *middleware.NewAuthenticator(s.TokenService, s.UserService, os.Getenv("SERVER_HOST"))
 	var annCtrl *controllers.AnnouncementController = controllers.NewAnnouncementController(s.AnnouncementService, s.EmailService, s.UserService, s.ImageService)
 	var pubCtrl *controllers.PublicController = controllers.NewPublicController(s.PublicService, s.ImageService)
 	{
-		//TODO make admin accounts saveable to a file or sumn
-		adminGroup.Use( /*auth.AuthenticateAdmin*/ )
+		adminGroup.Use(auth.AuthenticateAdmin)
 
 		//admin webpage handlers
 		adminGroup.GET("/", controllers.AdminHomeHandler)

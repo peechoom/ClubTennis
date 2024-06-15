@@ -100,47 +100,19 @@
 
     <!-- Content -->
     <div class="container mt-5">
-        <!-- Slideshow -->
-        <div id="slideshow" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-inner">
-                <div class="carousel-item" ng-repeat="slide in slides track by $index" ng-class="{active: $index === 0}">
-                    <img ng-src="{{slide}}" class="d-block w-100" alt="homepage slideshow picture">
-                </div>
-            </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#slideshow" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#slideshow" data-bs-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Next</span>
-            </button>
-        </div>
+            <h1>Uh Oh!</h1>
 
-        <!-- Lorem Ipsum Text -->
-        <div class="container mt-5">
-            <div ng-bind-html="welcome"></div>
-        </div>
-        <div style="padding: 0px; position: relative;">
-            <span style="font-size: 24px; color: rgba(0, 0, 0, 0.87); display: block; line-height: 36px;">
-                <h3 style="margin-top: 25px;"> Contact Information </h3>
-            </span>
-            <span style="font-size: 14px; color: rgba(0, 0, 0, 0.54); display: block;"></span>
-        </div>
-        <div class="container mb-5" >
-            <div style="margin-left: 5px; padding: 5px 15px; border-left: 1px solid rgb(210, 210, 210);">
-                <div>
-                    <div> 1000 Carmichael Gym Box 8111 </div>
-                    <div><span> Raleigh, </span> NC 27695 </div>
-                    <div> United States </div>
-                </div>
-                <div>
-                    <span class="sr-only"></span><strong> E: </strong> clubtennis.ncsu@gmail.com 
-                </div>
-            </div>
-            <a href="https://www.instagram.com/ncsuclubtennis/"><img src="/static/instagram-icon.png" alt="link to club tennis instagram account"/></a>
-            <a href="https://www.facebook.com/people/NC-State-Club-Tennis/100030791363654/"><img src="/static/facebook-icon.png" alt="link to club tennis facebook account"/></a>
-        </div>
+            <img src="/static/whoops.jpeg" class="rounded mx-auto d-block" style="max-height: 300px;">
+            <br/>
+            <p>It looks like you tried to visit a page you're not allowed to see. There could be many reasons for this:</p>
+            <ul>
+                <li>You tried to sign in with the wrong account</li>
+                <li>Your NCSU/skema email is not yet in the club tennis system</li>
+                <li>You are not in the club</li>
+                <li>You tried to visit an admin page</li>
+            </ul>
+            <p>If you believe this was done in error, please contact clubtennis.ncsu@gmail.com.</p>
+
     </div>
 </body>
 

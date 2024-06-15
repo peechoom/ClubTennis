@@ -53,3 +53,7 @@ func SendAnnouncementsHandler(c *gin.Context) {
 func EditPublicPagesHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "editpublicpages.html", nil)
 }
+
+func ErrorHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "error.html", nil)
+}

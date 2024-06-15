@@ -135,6 +135,11 @@ func (r *UserRepository) FindByUnityID(s string) (u *models.User, err error) {
 	return
 }
 
+func (r *UserRepository) FindAdmins() (u []models.User, err error) {
+	err = r.db.Where(&models.User{IsOfficer: true}).Find(&u).Error
+	return
+}
+
 func (r *UserRepository) FixLadder() {
 	ladder, err := r.FindAll()
 	if err != nil {

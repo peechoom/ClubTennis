@@ -72,7 +72,7 @@ func (a *AnnouncementController) SubmitPost(c *gin.Context) {
 	var payload gin.H
 	c.BindJSON(&payload)
 	if payload["body"] == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "body missing"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "body missing"})
 	}
 	if payload["subject"] == nil {
 		payload["subject"] = ""
@@ -80,14 +80,19 @@ func (a *AnnouncementController) SubmitPost(c *gin.Context) {
 
 	ann := models.NewAnnouncement((payload["body"].(string)), (payload["subject"].(string)))
 	if ann == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "announcement not valid"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "announcement not valid"})
+		return
+	}
+
+	if ann.Size() > 7 {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Images are too large! Please try compressing or reducing the size of your images"})
 		return
 	}
 
 	//strip image base64's from announcement and replace them with links that trigger GET's from image repo
 	images, err := ann.StripImages(a.serverHost + "/images")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "could not parse html doc"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "could not parse html doc"})
 		return
 	}
 
@@ -95,7 +100,7 @@ func (a *AnnouncementController) SubmitPost(c *gin.Context) {
 		err := a.imageService.Save(img)
 		if err != nil {
 			c.Error(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save image"})
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "could not save image"})
 			return
 		}
 	}
@@ -103,7 +108,7 @@ func (a *AnnouncementController) SubmitPost(c *gin.Context) {
 	err = a.announcementService.SubmitAnnouncement(ann)
 	if err != nil {
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save announcement"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Could not save announcement"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"body": "success"})
@@ -117,20 +122,20 @@ func (a *AnnouncementController) emailEveryone(c *gin.Context, ann *models.Annou
 	everyone, err := a.userService.FindAll()
 	if err != nil {
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could fetch recipients from database"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Could fetch recipients from database"})
 		return err
 	}
 	e := a.emailService.MakeAnnouncementEmail(ann, everyone)
 	if e == nil {
 		err = errors.New("could not create email")
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create email"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "could not create email"})
 		return err
 	}
 	err = a.emailService.Send(e)
 	if err != nil {
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "email generated but could not be sent"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "email generated but could not be sent"})
 		return err
 	}
 	return nil

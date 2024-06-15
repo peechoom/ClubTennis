@@ -12,10 +12,68 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+        // Create a new Image object for preloading the hover image
+        var hoverImage = new Image();
+        hoverImage.src = "/static/tuffy-small-bred.webp";
+        
+        // Find the logo-outer element
+        var logoOuter = document.querySelector('.logo-outer');
+        // Find the logo-inner element
+        var logoInner = document.querySelector('.logo-inner');
+        
+        // When mouse enters logo-outer, update logo-inner src to the hover image
+        logoOuter.addEventListener('mouseenter', function() {
+            logoInner.src = hoverImage.src;
+        });
+        
+        // When mouse leaves logo-outer, revert logo-inner src to the original image
+        logoOuter.addEventListener('mouseleave', function() {
+            logoInner.src = "/static/tuffy-small-whiteline.webp";
+        });
+    });
+    </script>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-md">
+        <div class="container">
+            <!-- Offcanvas toggle button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navbar header/brand centered -->
+            <a class="navbar-brand mx-auto" href="/club/">NC State Club Tennis</a>
+
+            <!-- Offcanvas navbar content -->
+            <div class="offcanvas offcanvas-start offcanvas-red" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+                <div class="offcanvas-header">
+                    <h3 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/club/challenge">Challenge</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/club/announcements">Announcements</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/">Admin Console</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/club/">Club Home</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
     <div class="container mt-5">
         <h1>Send announcement</h1>
         <textarea id="editor"></textarea>
-        <p>Max image size: 8MB. Select "image as base64" to attach a picture from your computer.</p>
+        <p>Max image size: 7MB. Select "image as base64" to attach a picture from your computer.</p>
 
         <div class="form-check mt-3">
             <input class="form-check-input" type="checkbox" id="notifyAll">
@@ -70,33 +128,41 @@
             });
         });
 
-        function sendContent() {
-            const content = $('#editor').trumbowyg('html');
-            const notifyAll = $('#notifyAll').is(':checked');
-            const subject = notifyAll ? $('#subject').val() : '';
+    function sendContent() {
+        const content = $('#editor').trumbowyg('html');
+        const notifyAll = $('#notifyAll').is(':checked');
+        const subject = notifyAll ? $('#subject').val() : '';
 
-            // Send the data using fetch
-            fetch('/admin/announcements', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    body: content,
-                    notifyAll: notifyAll,
-                    subject: subject
-                })
+        // Send the data using fetch
+        fetch('/admin/announcements', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                body: content,
+                notifyAll: notifyAll,
+                subject: subject
             })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Success:', data);
-                alert('Announcement sent successfully!');
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                alert('An error occurred. Please try again.');
-            });
-        }
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                    throw new Error(errorData.error);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+            alert('Announcement sent successfully!');
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('An error occurred: ' + error.message);
+        });
+    }
+
     </script>
 </body>
 </html>

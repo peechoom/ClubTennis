@@ -15,7 +15,7 @@ import (
 )
 
 // ID tokens are valid for 6 hours
-const DefaultIDTokenLifetime int64 = 6 * int64(time.Hour/time.Second)
+const DefaultIDTokenLifetime int64 = 10 //6 * int64(time.Hour/time.Second)
 
 // refresh tokens are valid for 3 days
 const DefaultRefreshTokenLifetime int64 = 3 * 24 * int64(time.Hour/time.Second)

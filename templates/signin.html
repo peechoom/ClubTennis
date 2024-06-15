@@ -12,30 +12,77 @@
     <!-- jQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
-    <!-- AngularJS -->
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
-
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body ng-app="signInApp" ng-controller="signInController">
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+        // Create a new Image object for preloading the hover image
+        var hoverImage = new Image();
+        hoverImage.src = "/static/tuffy-small-bred.webp";
+        
+        // Find the logo-outer element
+        var logoOuter = document.querySelector('.logo-outer');
+        // Find the logo-inner element
+        var logoInner = document.querySelector('.logo-inner');
+        
+        // When mouse enters logo-outer, update logo-inner src to the hover image
+        logoOuter.addEventListener('mouseenter', function() {
+            logoInner.src = hoverImage.src;
+        });
+        
+        // When mouse leaves logo-outer, revert logo-inner src to the original image
+        logoOuter.addEventListener('mouseleave', function() {
+            logoInner.src = "/static/tuffy-small-whiteline.webp";
+        });
+    });
+    </script>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <!-- Offcanvas toggle button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
+            <!-- Navbar header/brand centered -->
+            <a class="navbar-brand mx-auto justify-content-between logo-outer" href="/">
+                <span>NC State</span>
+                <img src="/static/tuffy-small-whiteline.webp" class="logo-inner">
+                <span>Club Tennis</span>
+            </a>
+            <!-- Offcanvas navbar content -->
+            <div class="offcanvas offcanvas-start offcanvas-red" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/signin">Sign in</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
     <!-- Content -->
-    <div class="container mt-5">
-        <h1>Sign In</h1>
-        <div class="mt-4">
-            <a href="/auth/login">Sign In</button>
+    <div class="container mt-5 d-flex justify-content-center">
+        <div class="card shadow p-4" style="width: 24rem;">
+            <div class="card-body">
+                <h1 class="card-title text-center mb-4">Sign In</h1>
+                <a href="/auth/login" class="btn btn-primary btn-block w-100">Sign In with Google</a>
+            </div>
+            <div class="card-footer">
+                <p><i>NC State students can sign in with Google by using their @ncsu.edu account. Skema students and others must use their connected Google account to sign in.</i></p>
+            </div>
         </div>
     </div>
 
-    <!-- AngularJS Controller -->
-    <script>
-        var app = angular.module('signInApp', []);
-
-        app.controller('signInController', function($scope, $http) {
-            
-        });
-    </script>
-
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-qBuXIO8KM9cuJ2iBdHkIR8T/zogBPHRrDJKoQsQ+7WTKs3a+5Jp5gxw5C1xvd8HU" crossorigin="anonymous"></script>
 </body>
 
 </html>

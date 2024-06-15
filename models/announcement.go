@@ -21,7 +21,6 @@ type Announcement struct {
 	Data      string         //the HTML for this announcement. Can include encoded images. encoded in base64
 }
 
-// TODO migrations, controllers
 func NewAnnouncement(data, subject string) *Announcement {
 	if !IsCleanHTML(data) || len(subject) > 900 {
 		return nil
@@ -135,4 +134,11 @@ func findAndReplace(n *html.Node, path string, images *[]*Image, re *regexp.Rege
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		findAndReplace(c, path, images, re)
 	}
+}
+
+const bytes_in_megabyte int = 1000000
+
+// return the size of the buffer in megabytes
+func (ann *Announcement) Size() int {
+	return len(ann.Data) / bytes_in_megabyte
 }

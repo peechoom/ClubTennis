@@ -42,7 +42,28 @@
     </style>
     
 </head>
-
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Create a new Image object for preloading the hover image
+        var hoverImage = new Image();
+        hoverImage.src = "/static/tuffy-small-bred.webp";
+        
+        // Find the logo-outer element
+        var logoOuter = document.querySelector('.logo-outer');
+        // Find the logo-inner element
+        var logoInner = document.querySelector('.logo-inner');
+        
+        // When mouse enters logo-outer, update logo-inner src to the hover image
+        logoOuter.addEventListener('mouseenter', function() {
+            logoInner.src = hoverImage.src;
+        });
+        
+        // When mouse leaves logo-outer, revert logo-inner src to the original image
+        logoOuter.addEventListener('mouseleave', function() {
+            logoInner.src = "/static/tuffy-small-whiteline.webp";
+        });
+    });
+    </script>
 <body ng-app="announcements" ng-controller="announcementsController">
     <script>
         var app = angular.module('announcements', []);
@@ -99,8 +120,11 @@
             </button>
 
             <!-- Navbar header/brand centered -->
-            <a class="navbar-brand mx-auto" href="/club/">NC STATE Club Tennis</a>
-
+            <a class="navbar-brand mx-auto justify-content-between logo-outer" href="/club/">
+                <span>NC State</span>
+                <img src="/static/tuffy-small-whiteline.webp" class="logo-inner">
+                <span>Club Tennis</span>
+            </a>
             <!-- Offcanvas navbar content -->
             <div class="offcanvas offcanvas-start offcanvas-red" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
                 <div class="offcanvas-header">

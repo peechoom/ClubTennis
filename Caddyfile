@@ -1,0 +1,7 @@
+107.130.242.6 {
+    reverse_proxy server:8080
+}
+
+localhost {
+    reverse_proxy gin:8080
+}

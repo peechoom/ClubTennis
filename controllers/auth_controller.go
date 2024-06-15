@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"ClubTennis/models"
 	"ClubTennis/services"
 	"errors"
 	"log"
@@ -19,7 +20,7 @@ type AuthController struct {
 	googleOauthConfig *oauth2.Config
 	userService       *services.UserService
 	tokenService      *services.TokenService
-	host              string //this host
+	host              string // this host
 	stateString       string
 }
 
@@ -43,35 +44,62 @@ func NewAuthController(userService *services.UserService, tokenservice *services
 	}
 }
 
-/*
-	POST /auth/login
-
-users POST to here when they want to log in
-*/
 func (a *AuthController) Login(c *gin.Context) {
-	c.Redirect(http.StatusTemporaryRedirect, a.googleOauthConfig.AuthCodeURL(a.stateString))
+
+	cookie, err := c.Cookie("refresh_token")
+	if err != nil {
+		c.Redirect(http.StatusTemporaryRedirect, a.googleOauthConfig.AuthCodeURL(a.stateString))
+		return
+	}
+	refreshToken, err := a.tokenService.ValidateRefreshToken(cookie)
+	if err != nil {
+		c.Redirect(http.StatusTemporaryRedirect, a.googleOauthConfig.AuthCodeURL(a.stateString))
+		return
+	}
+	tokens, err := a.tokenService.GetNewTokenPair(refreshToken.UserID, refreshToken.ID.String())
+	if err != nil {
+		c.Redirect(http.StatusTemporaryRedirect, a.googleOauthConfig.AuthCodeURL(a.stateString))
+		return
+	}
+	usr, err := a.userService.FindByID(tokens.UserID)
+	if err != nil {
+		c.Redirect(http.StatusPermanentRedirect, "/")
+		return
+	}
+	setCookies(c, tokens, int(a.tokenService.IDTokenLifetime), int(a.tokenService.RefreshTokenLifetime), a.host)
+
+	if usr.IsOfficer {
+		c.Redirect(http.StatusPermanentRedirect, "/admin/")
+		return
+	} else {
+		c.Redirect(http.StatusPermanentRedirect, "/club/")
+		return
+	}
 }
 
 func (a *AuthController) Logout(c *gin.Context) {
-	userID := c.GetUint("user_id")
+	host := a.host // Use the host from the controller
+
 	tokenStr, err := c.Cookie("refresh_token")
 	if err != nil {
 		c.Redirect(http.StatusPermanentRedirect, "/")
 		return
 	}
-	token, err := a.tokenService.ValidateRefreshToken(tokenStr)
+	token, _ := a.tokenService.ValidateRefreshToken(tokenStr)
 
-	if userID != 0 && err != nil {
-		a.tokenService.DeleteRefreshToken(userID, token.ID.String())
-	}
+	a.tokenService.DeleteRefreshToken(token.UserID, token.ID.String())
+
+	// Log the cookies being set for debugging purposes
+	log.Println("Clearing cookies")
+	log.Println("Host:", host)
+
+	// Set the cookies with a max age of -1 to delete them
+	c.SetCookie("id_token", "", -1, "/", host, false, true)
+	c.SetCookie("refresh_token", "", -1, "/", host, false, true)
+
 	c.Redirect(http.StatusPermanentRedirect, "/")
 }
 
-/*
-	GET /auth/callback
-
-google will GET this and redirect user to it when login success
-*/
 func (a *AuthController) Callback(c *gin.Context) {
 	state := c.Query("state")
 	if state != a.stateString {
@@ -92,23 +120,26 @@ func (a *AuthController) Callback(c *gin.Context) {
 
 	user, err := a.userService.FindByEmail(email)
 	if err != nil || user == nil {
-		c.Error(err)
-		log.Print("no email")
-		c.Redirect(http.StatusTemporaryRedirect, "/error")
-		return
+		if email != os.Getenv("EMAIL_USERNAME") {
+			c.Error(err)
+			log.Print("no email")
+			c.Redirect(http.StatusTemporaryRedirect, "/error")
+			return
+		}
+		user = &models.User{IsOfficer: true}
+		user.ID = 0
 	}
 	c.Set("user_id", user.ID)
 
 	tokenPair, err := a.tokenService.GetNewTokenPair(user.ID, "")
 	if err != nil {
 		c.Error(err)
-		log.Print("couldnt make tokenpair")
+		log.Print("couldn't make token pair")
 		c.Redirect(http.StatusTemporaryRedirect, "/error")
 		return
 	}
-	//TODO update this to use the config host
-	c.SetCookie("id_token", tokenPair.IDToken.SS, int(a.tokenService.IDTokenLifetime), "/", a.host, false, true)
-	c.SetCookie("refresh_token", tokenPair.RefreshToken.SS, int(a.tokenService.RefreshTokenLifetime), "/", a.host, false, true)
+
+	setCookies(c, tokenPair, int(a.tokenService.IDTokenLifetime), int(a.tokenService.RefreshTokenLifetime), a.host)
 
 	if user.IsOfficer {
 		c.Redirect(http.StatusPermanentRedirect, "/admin/")
@@ -119,11 +150,6 @@ func (a *AuthController) Callback(c *gin.Context) {
 	}
 }
 
-/*
-	GET /auth/me
-
-parses the id token and returns the principal ID
-*/
 func (a *AuthController) Me(c *gin.Context) {
 	ss, err := c.Cookie("id_token")
 	if err != nil {
@@ -134,7 +160,6 @@ func (a *AuthController) Me(c *gin.Context) {
 	}
 	uid, err := a.tokenService.ValidateIDToken(ss)
 	if err != nil || uid == 0 {
-		c.Error(err)
 		log.Print(err.Error())
 		c.JSON(http.StatusNotFound, gin.H{"error": "id token not valid"})
 		return
@@ -142,9 +167,8 @@ func (a *AuthController) Me(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"user_id": uid})
 }
 
-// UTILITY FUNCTIONS
+// Utility functions
 
-// gets email address from a google token
 func getEmailFromGoogleToken(c *gin.Context, codeString string, config *oauth2.Config) (string, error) {
 	token, err := config.Exchange(c.Request.Context(), codeString)
 	if err != nil {
@@ -168,4 +192,15 @@ func getEmailFromGoogleToken(c *gin.Context, codeString string, config *oauth2.C
 	}
 
 	return userInfo.Email, nil
+}
+
+func setCookies(c *gin.Context, tokenPair *models.TokenPair, IDLifetime, RefreshLifetime int, host string) {
+	c.SetCookie("id_token", tokenPair.IDToken.SS, IDLifetime, "/", host, false, true)
+	c.SetCookie("refresh_token", tokenPair.RefreshToken.SS, RefreshLifetime, "/", host, false, true)
+
+	// Log the cookies being set for debugging purposes
+	log.Println("Setting cookies")
+	log.Println("id_token:", tokenPair.IDToken.SS)
+	log.Println("refresh_token:", tokenPair.RefreshToken.SS)
+	log.Println("Host:", host)
 }

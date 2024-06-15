@@ -10,7 +10,7 @@
 
 # config file
 /config/config.json
-/config/.env
+*.env
 # private keys
 *.key
 

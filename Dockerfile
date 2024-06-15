@@ -19,6 +19,9 @@ RUN go mod download
 # Copy the entire source code to the container
 COPY . .
 
+# ensure that scripts are executable
+RUN chmod -x ./scripts/wait_for_it.sh
+
 # Build the Go application
 RUN go build -o main
 
@@ -26,5 +29,3 @@ RUN go build -o main
 # Cloud Run provides the PORT environment variable, so we use that
 EXPOSE $PORT
 
-# Command to run the binary
-CMD ["./main"]

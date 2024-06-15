@@ -1,0 +1,35 @@
+services:
+  server:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    links:
+      - "mysql:database"
+    depends_on:
+      - mysql # db must be started before server
+    entrypoint: [./scripts/wait_for_it.sh, "mysql:3033", "--", "./main"] #ensure the server waits for the db
+
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+    - ./Caddyfile:/etc/caddy/Caddyfile
+    - caddy_data:/data #persist caddy data
+    - caddy_config:/config #persist caddy config
+
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DATABASE_PASS}
+
+volumes:
+  mysql_data:
+  caddy_data:
+  caddy_config:

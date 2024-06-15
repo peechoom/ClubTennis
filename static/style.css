@@ -180,3 +180,51 @@ h1, h2, h3, h4, h5, h6 {
     background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='rgba(255, 255, 255, 1.0)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
     /* The above data URL creates a white icon */
 }
+
+.header-img {
+    max-height: 75px;
+}
+
+#headerparent {
+    position: relative;
+ }
+ #headerchild {
+    position: absolute;
+    right: 5%;
+    top: 8%;
+ }
+     
+
+
+@media (min-width: 768px) {
+    .header-img {
+        max-height: 100px; /* Increase height for larger screens */
+    }
+    #headerchild {
+        position: absolute;
+        right: 9%;
+        top: 9%;
+     }
+}
+
+@media (min-width: 992px) {
+    .header-img {
+        max-height: 175px; /* Further increase height for even larger screens */
+    }
+    #headerchild {
+        position: absolute;
+        right: 9%;
+        top: 10%;
+     }
+}
+
+.logo-inner {
+    max-height: 2.5rem;
+    position: relative;
+    bottom: 0.25rem;
+}
+
+.logo-outer:hover .logo-inner {
+    content: url('/static/tuffy-small-bred.webp');
+}
+

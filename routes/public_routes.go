@@ -25,6 +25,9 @@ func SetPublicRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 		r.GET("/slides", pubCtrl.GetSlideshow)
 		r.GET("/welcome", pubCtrl.GetWelcome)
 
+		r.GET("/error", controllers.ErrorHandler)
+		r.GET("/error.html", controllers.ErrorHandler)
+
 		staticGroup := r.Group("/static")
 		{
 			staticGroup.Use(middleware.GetCors())

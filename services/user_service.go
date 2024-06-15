@@ -98,6 +98,10 @@ func (s *UserService) DeleteByUnityID(unityID string) error {
 	return nil
 }
 
+func (s *UserService) FindOfficers() ([]models.User, error) {
+	return s.repo.FindAdmins()
+}
+
 // algorithm for adjusting the ladder.
 // If the winner is a higher rank (lower number), nothing happens.
 // If the winner is a lower rank:
