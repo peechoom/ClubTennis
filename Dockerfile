@@ -25,7 +25,13 @@ RUN chmod -x ./scripts/wait_for_it.sh
 # Build the Go application
 RUN go build -o main
 
-# Expose the port defined by the PORT environment variable
-# Cloud Run provides the PORT environment variable, so we use that
-EXPOSE $PORT
-
+# Define the final image for running the application
+FROM alpine:3.18
+RUN apk add --no-cache bash
+WORKDIR /app
+COPY --from=builder /app/main .
+COPY --from=builder /app/config/.env ./config/.env
+COPY --from=builder /app/static ./static
+COPY --from=builder /app/templates ./templates
+COPY --from=builder /app/scripts/wait_for_it.sh ./scripts/wait_for_it.sh
+RUN chmod +x ./scripts/wait_for_it.sh

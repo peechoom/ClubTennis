@@ -3,5 +3,5 @@
 }
 
 localhost {
-    reverse_proxy gin:8080
+    reverse_proxy server:8080
 }
