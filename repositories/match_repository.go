@@ -123,8 +123,32 @@ func (r *MatchRepository) FindByMaxAge(timespan time.Duration) (m []Match, err e
 	now := time.Now()
 	then := time.Now().Add(-timespan)
 	err = r.db.
+		Preload("Players").
 		Where("submitted_at BETWEEN ? AND ?", then, now).
 		Where("`is_active` = ?", false).
 		Find(&m).Error
 	return
+}
+
+func (r *MatchRepository) FindByAgeRange(atLeast, atMost time.Duration, isActive bool) (m []Match, err error) {
+	now := time.Now()
+	youngest := now.Add(-atLeast)
+	oldest := now.Add(-atMost)
+	err = r.db.
+		Preload("Players").
+		Where("submitted_at BETWEEN ? AND ?", oldest, youngest).
+		Where("`is_active` = ?", isActive).
+		Find(&m).Error
+	return
+
+}
+
+func (r *MatchRepository) Delete(m []models.Match) error {
+	var userMatches []UserMatch
+	var ids []uint
+	for _, mat := range m {
+		ids = append(ids, mat.ID)
+	}
+	r.db.Table("user_matches").Unscoped().Where("match_id IN ?", ids).Delete(&userMatches)
+	return r.db.Unscoped().Where("id IN ?", ids).Delete(&m).Error
 }

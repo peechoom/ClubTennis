@@ -116,6 +116,47 @@ func (s *EmailService) MakeAnnouncementEmail(ann *models.Announcement, recipient
 	return e
 }
 
+// makes an email to the challenged reminding them of the challenge match
+func (s *EmailService) MakeChallengeReminder(challenger, challenged *User) *email.Email {
+	v, err := challengeEmailMap(challenger, challenged)
+	if v == nil || err != nil {
+		panic("v")
+	}
+	htmlBody, err := s.populateTemplate("reminder", v)
+	if err != nil {
+		return nil
+	}
+	headers := textproto.MIMEHeader{}
+	headers.Add("Reply-To", fmt.Sprintf("%s %s <%s>", challenger.FirstName, challenger.LastName, challenger.Email))
+
+	return &email.Email{
+		To:      []string{challenged.Email},
+		From:    fmt.Sprintf("NC State Club Tennis <%s>", s.senderAddress),
+		Cc:      []string{s.senderAddress},
+		Headers: headers,
+		Subject: "Challenge Match Reminder",
+		HTML:    []byte(htmlBody),
+		Text:    []byte(fmt.Sprintf("This is an automated reminder that you have one day left to play %s %s (%s) to defend your position in the ladder, or else the match is automatically considered a forefit.", challenger.FirstName, challenger.LastName, challenger.Email)),
+	}
+}
+
+// makes an email telling the user that the forfeit has heppened
+func (s *EmailService) MakeForfeitEmail(challenger, challenged *User) *email.Email {
+	v, err := challengeEmailMap(challenger, challenged)
+	if v == nil || err != nil {
+		return nil
+	}
+	htmlBody, err := s.populateTemplate("forfeit", v)
+	if err != nil {
+		return nil
+	}
+	email := s.stdHeader(challenger, challenged)
+	email.HTML = []byte(htmlBody)
+	email.Text = []byte("This email is sent as indication that the challenger has won due to an auto-forfeit.")
+
+	return email
+}
+
 func (s *EmailService) stdHeader(recipients ...*User) *email.Email {
 	return &email.Email{
 		To:   mapSlice(recipients, func(u *User) string { return u.Email }),

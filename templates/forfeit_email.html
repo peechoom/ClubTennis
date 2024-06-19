@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Challenge Email</title>
+  <style>
+    @font-face {
+        font-family: 'Wolfpack-Regular';
+        src: url('&%wolfpack_regular_link%&') format('woff2');
+        font-weight: normal;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'United-Sans-Regular-Bold';
+        src: url('&%united_sans_regbold_link%&') format('woff2');
+        font-weight: normal;
+        font-style: normal;
+    }
+    /* @font-face rules for Gotham Narrow font family */
+
+    @font-face {
+        font-family: 'Gotham-Narrow-Medium';
+        src: url('&%gotham_narrow_medium_link%&') format('woff2');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    @font-face {
+        font-family: 'Gotham-Narrow-Book';
+        src: url('&%gotham_narrow_book_link%&') format('woff2');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    @font-face {
+        font-family: 'Gotham-Narrow-BookItalic';
+        src: url('&%gotham_narrow_book_italic_link%&') format('woff2');
+        font-weight: normal;
+        font-style: italic;
+    }
+
+    @font-face {
+        font-family: 'Gotham-Narrow-MediumItalic';
+        src: url('&%gotham_narrow_medium_italic_link%&') format('woff2');
+        font-weight: normal;
+        font-style: italic;
+    }
+
+    /* Apply Gotham Narrow font family to <strong> tags */
+    strong {
+        font-family: 'Gotham-Narrow-Medium', sans-serif;
+    }
+
+    /* Apply Gotham Narrow font family to <i> tags */
+    i {
+        font-family: 'Gotham-Narrow-BookItalic', sans-serif;
+    }
+
+    /* Apply Gotham Narrow font family to <strong> and <i> combination */
+    strong i, i strong {
+        font-family: 'Gotham-Narrow-MediumItalic', sans-serif;
+    }
+
+    /* Apply Gotham Narrow font family to <body> */
+    body {
+        font-family: 'Gotham-Narrow-Book', sans-serif;
+
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'United-Sans-Regular-Bold', sans-serif;
+    }
+
+    .offcanvas-red {
+        color:#CC0000;
+        background-color:#CC0000;
+    }
+    .offcanvas-header{
+        color:#ffffff;
+    }
+    .btn {
+        font-family: 'United-Sans-Regular-Bold';
+    }
+
+
+    .btn-primary {
+        background-color: #CC0000;
+        color: #fff; /* Text color */
+        border: 1px solid transparent; /* Transparent border */
+        padding: 0.5rem 1rem; /* Padding */
+        font-size: 1rem; /* Font size */
+        line-height: 1.5; /* Line height */
+        border-radius: 0.25rem; /* Border radius */
+        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; /* Transition for smooth animation */
+
+        /* Hover state */
+        &:hover {
+            background-color: #AA0000; /* Darker shade of primary color */
+            color: #fff; /* Text color */
+            border-color: transparent; /* Transparent border */
+            text-decoration: none; /* Remove underline on hover */
+        }
+
+        /* Focus state */
+        &:focus {
+            outline: 0; /* Remove default focus outline */
+            box-shadow: 0 0 0 0.2rem rgba(204, 0, 0, 0.5); /* Custom focus shadow */
+            background-color: #990000; /* Darker shade of primary color */
+        }
+
+        /* Active state */
+        &:active {
+            background-color: #990000 !important; /* Darker shade of primary color */
+            color: #ffffff; /* Text color */
+            border-color: transparent; /* Transparent border */
+        }
+    }
+    /* Customized .btn-secondary */
+    .btn-secondary {
+        background-color: #6c757d; /* Gray color */
+        color: #fff; /* Text color */
+        border: 1px solid transparent; /* Transparent border */
+        padding: 0.5rem 1rem; /* Padding */
+        font-size: 1rem; /* Font size */
+        line-height: 1.5; /* Line height */
+        border-radius: 0.25rem; /* Border radius */
+        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; /* Transition for smooth animation */
+
+        /* Hover state */
+        &:hover {
+            background-color: #5a6268; /* Darker shade of gray */
+            color: #fff; /* Text color */
+            border-color: transparent; /* Transparent border */
+            text-decoration: none; /* Remove underline on hover */
+        }
+
+        /* Focus state */
+        &:focus {
+            outline: 0; /* Remove default focus outline */
+            box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.5); /* Custom focus shadow */
+        }
+
+        /* Active state */
+        &:active {
+            background-color: #495057; /* Darker shade of gray */
+            color: #fff; /* Text color */
+            border-color: transparent; /* Transparent border */
+        }
+    }
+    .text-center {
+      text-align: center;
+    }
+    .h1-big {
+      font-family: 'Wolfpack-Regular';
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    .side-by-side {
+        display: flex;
+        justify-content: center; /* Center items horizontally */
+        align-items: center;     /* Center items vertically if needed */
+    }
+
+    .item {
+        flex: 0 1 auto; /* Prevent items from growing or shrinking */
+        margin: 0 10px; /* Optional: spacing between items */
+        padding: 10px;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 text-center">
+        <div class="side-by-side">
+            <img class="item" style="max-height: 4rem;" src="&%tuffy_head_small_link%&">
+            <h2 class="item" style="font-family: 'Wolfpack-Regular';max-height: 2rem;">NC STATE CLUB TENNIS</h2>
+        </div>
+        <hr/>
+        <h2>Match Auto-Forfeited</h2>
+        <p>This email is an automated notification that &%challenged_firstname%& &%challenged_lastname%& has forfeited the challenge due to inactivity.</p>
+        <p>There is no action required from you. You are now free to challenge others.</p>
+    </div>
+    </div>
+  </div>
+</body>
+</html>

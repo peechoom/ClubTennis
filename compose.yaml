@@ -20,6 +20,8 @@ services:
     - ./Caddyfile:/etc/caddy/Caddyfile
     - caddy_data:/data #persist caddy data
     - caddy_config:/config #persist caddy config
+    depends_on:
+      - server
 
   mysql:
     image: mysql:8.0

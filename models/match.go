@@ -19,10 +19,11 @@ type Match struct {
 	Players        []*User   `gorm:"many2many:user_matches;"`
 	Score          uint8     `gorm:"default:0"`
 	IsActive       bool
+	LateNotifSent  bool //if this challenge is almost expired, has the user been notified yet?
 }
 
 // A player may not challenge the same player within this many days
-const SamePlayerCooldownDays int = 14
+const SamePlayerCooldownDays = 14
 
 // A player may not challenge the same player within this many hours
 const SamePlayerCooldownHours int = 24 * SamePlayerCooldownDays

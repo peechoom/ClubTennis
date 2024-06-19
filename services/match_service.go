@@ -17,6 +17,10 @@ type MatchService struct {
 // how long we should consider "recent matches"
 const recentMatchesDays = 7
 
+const matchExpiresDays = 9
+
+const deletionThreshold = models.SamePlayerCooldownDays * 2
+
 type Match = models.Match
 
 func NewMatchService(db *gorm.DB) *MatchService {
@@ -125,4 +129,31 @@ func (ms *MatchService) FindAllRecentMatches(timespan time.Duration) ([]Match, e
 		m = append(m, a[i])
 	}
 	return m, nil
+}
+
+// returns all matches that are about to expire
+func (ms *MatchService) FindByNearlyExpired() ([]Match, error) {
+	minTime := time.Hour * 24 * (matchExpiresDays - 1)
+	maxTime := time.Hour * 24 * (matchExpiresDays)
+
+	return ms.repo.FindByAgeRange(minTime, maxTime, true)
+}
+
+// returns all matches that are expired (marked active but too much time has passed)
+func (ms *MatchService) FindByExpired() ([]Match, error) {
+	minTime := time.Hour * 24 * (matchExpiresDays)
+	maxTime := time.Hour * 24 * (matchExpiresDays + 1)
+
+	return ms.repo.FindByAgeRange(minTime, maxTime, true)
+}
+
+func (ms *MatchService) DeleteOldMatches() error {
+	minTime := time.Hour * 24 * deletionThreshold
+	maxTime := time.Hour * 24 * (365)
+
+	matches, err := ms.repo.FindByAgeRange(minTime, maxTime, false)
+	if err != nil {
+		return err
+	}
+	return ms.repo.Delete(matches)
 }

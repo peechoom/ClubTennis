@@ -13,9 +13,11 @@ import (
 )
 
 var templates = map[string]string{
-	"challenger":   "challenger_email.html",   //email to the challenger
-	"challenged":   "challenged_email.html",   //email to the challenged
-	"announcement": "announcement_email.html", //email containing an announcement
+	"challenger":   "challenger_email.html",          //email to the challenger
+	"challenged":   "challenged_email.html",          //email to the challenged
+	"announcement": "announcement_email.html",        //email containing an announcement
+	"reminder":     "challenged_reminder_email.html", //email reminder to the challenged
+	"forfeit":      "forfeit_email.html",             //email indicating forfeit
 }
 
 const sentinalOpen string = "&%"
