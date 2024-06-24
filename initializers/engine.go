@@ -48,4 +48,5 @@ func startDaemons(s *services.ServiceContainer) {
 	go daemons.MatchWarningDaemon(daemons.WarningDefaultFrequency, true, s.MatchService, s.EmailService)
 	go daemons.MatchExpiredDaemon(daemons.ExpiredDefaultFrequency, true, s.MatchService, s.EmailService)
 	go daemons.MatchDeletionDaemon(daemons.DeletionDefaultFrequency, true, s.MatchService)
+	go daemons.AutoBackupDaemon(daemons.AutoBackupDefaultFrequency, true, s.EmailService, s.UserService)
 }

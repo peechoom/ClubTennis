@@ -13,6 +13,7 @@ func SetPublicRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 	r := engine
 	pubCtrl := controllers.NewPublicController(s.PublicService, s.ImageService)
 	{
+
 		r.GET("/", controllers.HomeHandler)
 		r.GET("/index.html", controllers.HomeHandler)
 
@@ -25,6 +26,7 @@ func SetPublicRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 		r.GET("/slides", pubCtrl.GetSlideshow)
 		r.GET("/welcome", pubCtrl.GetWelcome)
 
+		r.NoRoute(controllers.ErrorHandler)
 		r.GET("/error", controllers.ErrorHandler)
 		r.GET("/error.html", controllers.ErrorHandler)
 

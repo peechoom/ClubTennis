@@ -17,27 +17,29 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
     </script>
+    <link rel="stylesheet" href="/static/style.css">
+
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-        // Create a new Image object for preloading the hover image
-        var hoverImage = new Image();
-        hoverImage.src = "/static/tuffy-small-bred.webp";
-        
-        // Find the logo-outer element
-        var logoOuter = document.querySelector('.logo-outer');
-        // Find the logo-inner element
-        var logoInner = document.querySelector('.logo-inner');
-        
-        // When mouse enters logo-outer, update logo-inner src to the hover image
-        logoOuter.addEventListener('mouseenter', function() {
-            logoInner.src = hoverImage.src;
+        document.addEventListener("DOMContentLoaded", function () {
+            // Create a new Image object for preloading the hover image
+            var hoverImage = new Image();
+            hoverImage.src = "/static/tuffy-small-bred.webp";
+
+            // Find the logo-outer element
+            var logoOuter = document.querySelector('.logo-outer');
+            // Find the logo-inner element
+            var logoInner = document.querySelector('.logo-inner');
+
+            // When mouse enters logo-outer, update logo-inner src to the hover image
+            logoOuter.addEventListener('mouseenter', function () {
+                logoInner.src = hoverImage.src;
+            });
+
+            // When mouse leaves logo-outer, revert logo-inner src to the original image
+            logoOuter.addEventListener('mouseleave', function () {
+                logoInner.src = "/static/tuffy-small-whiteline.webp";
+            });
         });
-        
-        // When mouse leaves logo-outer, revert logo-inner src to the original image
-        logoOuter.addEventListener('mouseleave', function() {
-            logoInner.src = "/static/tuffy-small-whiteline.webp";
-        });
-    });
     </script>
     <script>
         var app = angular.module('newMember', []);
@@ -125,13 +127,41 @@
                     $('#deleteConfirmationModal').modal('hide'); // jQuery is used here
                 });
             };
+
+            // Function to download users .xlsx file
+            $scope.downloadUsers = function () {
+                window.location.href = 'backups/users';
+            };
+
+            // Function to upload users .xlsx file
+            $scope.uploadUsers = function () {
+                var formData = new FormData();
+                formData.append('users', $scope.usersFile);
+                formData.append('replace', $scope.replaceUsers);
+
+                $http.post('backups/users', formData, {
+                    headers: {
+                        'Content-Type': undefined
+                    }
+                }).then(function (response) {
+                    loadMembers(); // Reload members after uploading
+                });
+            };
+
+            // Function to handle file change event
+            $scope.handleFileChange = function (element) {
+                $scope.$apply(function () {
+                    $scope.usersFile = element.files[0];
+                });
+            };
         });
     </script>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-md">
         <div class="container">
             <!-- Offcanvas toggle button -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar"
+                aria-controls="offcanvasNavbar">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
@@ -142,10 +172,12 @@
                 <span>Club Tennis</span>
             </a>
             <!-- Offcanvas navbar content -->
-            <div class="offcanvas offcanvas-start offcanvas-red" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+            <div class="offcanvas offcanvas-start offcanvas-red" tabindex="-1" id="offcanvasNavbar"
+                aria-labelledby="offcanvasNavbarLabel">
                 <div class="offcanvas-header">
                     <h3 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
-                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                            aria-label="Close"></button>
                 </div>
                 <div class="offcanvas-body">
                     <ul class="navbar-nav">
@@ -175,8 +207,8 @@
                     <h5 class="modal-title" id="deleteConfirmationModalLabel">Confirm Deletion</h5>
                 </div>
                 <div class="modal-body">
-                    Are you sure you want to delete <strong>{{ deletingMember.FirstName }} {{ deletingMember.LastName
-                        }}</strong>?
+                    Are you sure you want to delete <strong>{{ deletingMember.FirstName }} {{
+                        deletingMember.LastName }}</strong>?
                     <p class="text-danger"><strong>This action cannot be undone.</strong></p>
                 </div>
                 <div class="modal-footer">
@@ -218,92 +250,116 @@
                     <td>
                         <span ng-show="!editMode || editingMember != member">{{member.LastName}}</span>
                         <input type="text" class="form-control" ng-show="editMode && editingMember == member"
-                        ng-model="member.LastName">
-                </td>
-                <td>
-                    <span ng-show="!editMode || editingMember != member">{{member.UnityID}}</span>
-                    <input type="text" class="form-control" ng-show="editMode && editingMember == member"
-                        ng-model="member.UnityID">
-                </td>
-                <td>
-                    <span ng-show="!editMode || editingMember != member">{{member.Affiliation}}</span>
-                    <input type="text" class="form-control" ng-show="editMode && editingMember == member"
-                        ng-model="member.Affiliation">
-                </td>
-                <td>
-                    <span ng-show="!editMode || editingMember != member">{{member.Email}}</span>
-                    <input type="text" class="form-control" ng-show="editMode && editingMember == member"
-                        ng-model="member.Email">
-                </td>
-                <td>
-                    <span ng-show="!editMode || editingMember != member">{{member.Ladder == 'M' ? 'Mens' : 'Womens'
-                        }}</span>
-                    <select class="form-select" ng-show="editMode && editingMember == member" ng-model="member.Ladder">
-                        <option value="M">Mens</option>
-                        <option value="W">Womens</option>
-                    </select>
-                </td>
-                <td>
-                    <input type="checkbox" class="form-check-input" ng-model="member.IsOfficer"> <!-- Checkbox for IsOfficer -->
-                </td>
-                <td>
-                    <button class="btn btn-primary btn-sm" ng-click="editMember(member)" ng-show="!editMode">Edit</button>
-                    <button class="btn btn-success btn-sm" ng-click="saveMember()"
-                        ng-show="editMode && editingMember == member">Save</button>
-                    <button class="btn btn-danger btn-sm" ng-click="openDeleteModal(member)" ng-show="!editMode">Delete</button>
-                    <button class="btn btn-secondary btn-sm" ng-click="cancelEdit()"
-                        ng-show="editMode && editingMember == member">Cancel</button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
-    <h2>Add New Member</h2>
-    <form ng-submit="addMember()">
-        <div class="mb-3">
-            <label for="newFirstName" class="form-label">First Name</label>
-            <input type="text" class="form-control" id="newFirstName" ng-model="newFirstName">
-        </div>
-        <div class="mb-3">
-            <label for="newLastName" class="form-label">Last Name</label>
-            <input type="text" class="form-control" id="newLastName" ng-model="newLastName">
-        </div>
-        <div class="mb-3">
-            <label for="newUnityID" class="form-label">Unity ID</label>
-            <input type="text" class="form-control" id="newUnityID" ng-model="newUnityID">
-        </div>
-        <div class="mb-3">
-            <label for="newAffiliation" class="form-label">Affiliation</label>
-            <input type="text" class="form-control" id="newAffiliation" ng-model="newAffiliation">
-        </div>
-        <div class="mb-3">
-            <label for="newEmail" class="form-label">Email</label>
-            <input type="text" class="form-control" id="newEmail" ng-model="newEmail">
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Ladder</label>
-            <div>
-                <input type="radio" id="newMensLadder" name="newLadder" value="M" ng-model="newLadder">
-                <label for="newMensLadder">Mens</label>
-            </div>
-            <div>
-                <input type="radio" id="newWomensLadder" name="newLadder" value="W" ng-model="newLadder">
-                <label for="newWomensLadder">Womens</label>
+                            ng-model="member.LastName">
+                    </td>
+                    <td>
+                        <span ng-show="!editMode || editingMember != member">{{member.UnityID}}</span>
+                        <input type="text" class="form-control" ng-show="editMode && editingMember == member"
+                            ng-model="member.UnityID">
+                    </td>
+                    <td>
+                        <span ng-show="!editMode || editingMember != member">{{member.Affiliation}}</span>
+                        <input type="text" class="form-control" ng-show="editMode && editingMember == member"
+                            ng-model="member.Affiliation">
+                    </td>
+                    <td>
+                        <span ng-show="!editMode || editingMember != member">{{member.Email}}</span>
+                        <input type="text" class="form-control" ng-show="editMode && editingMember == member"
+                            ng-model="member.Email">
+                    </td>
+                    <td>
+                        <span ng-show="!editMode || editingMember != member">{{member.Ladder == 'M' ? 'Mens' : 'Womens'
+                            }}</span>
+                        <select class="form-select" ng-show="editMode && editingMember == member" ng-model="member.Ladder">
+                            <option value="M">Mens</option>
+                            <option value="W">Womens</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="checkbox" class="form-check-input" ng-model="member.IsOfficer"> <!-- Checkbox for IsOfficer -->
+                    </td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" ng-click="editMember(member)" ng-show="!editMode">Edit</button>
+                        <button class="btn btn-success btn-sm" ng-click="saveMember()"
+                            ng-show="editMode && editingMember == member">Save</button>
+                        <button class="btn btn-danger btn-sm" ng-click="openDeleteModal(member)" ng-show="!editMode">Delete</button>
+                        <button class="btn btn-secondary btn-sm" ng-click="cancelEdit()"
+                            ng-show="editMode && editingMember == member">Cancel</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- Download/Upload Section -->
+        <div class="container mt-5">
+            <h2>Backup and Restore Members</h2>
+            <div class="row">
+                <!-- Download Button -->
+                <div class="col-md-6 text-center">
+                    <button class="btn btn-success" ng-click="downloadUsers()">Download Members</button>
+                </div>
+                <!-- Upload Form -->
+                <div class="col-md-6">
+                    <form ng-submit="uploadUsers()">
+                        <div class="mb-3">
+                            <label for="usersFile" class="form-label">Upload Members (.xlsx)</label>
+                            <input type="file" class="form-control" id="usersFile" accept=".xlsx"
+                                onchange="angular.element(this).scope().handleFileChange(this)">
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="replaceUsers" ng-model="replaceUsers">
+                            <label class="form-check-label" for="replaceUsers">Replace Existing Members (this will log everyone out)</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload Members</button>
+                    </form>
+                </div>
             </div>
         </div>
-        <div class="mb-3 form-check">
-            <input type="checkbox" class="form-check-input" id="newIsOfficer" ng-model="newIsOfficer">
-            <label class="form-check-label" for="newIsOfficer">Is Officer</label>
-        </div>
-        <button type="submit" class="btn btn-primary">Add Member</button>
-    </form>
+        <h2>Add New Member</h2>
+        <form ng-submit="addMember()">
+            <div class="mb-3">
+                <label for="newFirstName" class="form-label">First Name</label>
+                <input type="text" class="form-control" id="newFirstName" ng-model="newFirstName">
+            </div>
+            <div class="mb-3">
+                <label for="newLastName" class="form-label">Last Name</label>
+                <input type="text" class="form-control" id="newLastName" ng-model="newLastName">
+            </div>
+            <div class="mb-3">
+                <label for="newUnityID" class="form-label">Unity ID</label>
+                <input type="text" class="form-control" id="newUnityID" ng-model="newUnityID">
+            </div>
+            <div class="mb-3">
+                <label for="newAffiliation" class="form-label">Affiliation</label>
+                <input type="text" class="form-control" id="newAffiliation" ng-model="newAffiliation">
+            </div>
+            <div class="mb-3">
+                <label for="newEmail" class="form-label">Email</label>
+                <input type="text" class="form-control" id="newEmail" ng-model="newEmail">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Ladder</label>
+                <div>
+                    <input type="radio" id="newMensLadder" name="newLadder" value="M" ng-model="newLadder">
+                    <label for="newMensLadder">Mens</label>
+                </div>
+                <div>
+                    <input type="radio" id="newWomensLadder" name="newLadder" value="W" ng-model="newLadder">
+                    <label for="newWomensLadder">Womens</label>
+                </div>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="newIsOfficer" ng-model="newIsOfficer">
+                <label class="form-check-label" for="newIsOfficer">Is Officer</label>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Member</button>
+        </form>
 
-    <div class="text-center">
-        <a href="/admin" class="btn btn-primary">Return Home</a>
+        <div class="text-center">
+            <a href="/admin" class="btn btn-primary">Return Home</a>
+        </div>
+
+       
     </div>
-</div>
-
 </body>
 
 </html>
-

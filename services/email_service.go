@@ -8,6 +8,7 @@ import (
 	"net/textproto"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/jordan-wright/email"
 )
@@ -171,4 +172,28 @@ func mapSlice[T, V any](ts []T, fn func(T) V) []V {
 		result[i] = fn(t)
 	}
 	return result
+}
+
+func (s *EmailService) MakeBackupEmail(filename string) *email.Email {
+	timestring := time.Now().Format("Monday, Jan 2")
+	contents, err := os.ReadFile(filename)
+	if err != nil || len(contents) == 0 {
+		return nil
+	}
+
+	a := &email.Attachment{
+		Filename:    "ladder.xlsx",
+		ContentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+		Content:     contents,
+		Header:      textproto.MIMEHeader{},
+	}
+
+	return &email.Email{
+		To:      []string{s.senderAddress},
+		From:    fmt.Sprintf("Club Tennis app <%s>", s.senderAddress),
+		Subject: timestring + " Users Backup",
+		Text: []byte("Attached is a spreadsheet backup of the club ladder and members from " + timestring +
+			". This file can be used to reload the ladder in case the database needs resetting"),
+		Attachments: []*email.Attachment{a},
+	}
 }

@@ -27,7 +27,9 @@ func (s *UserService) Save(u ...*User) error {
 		if u[0].ID == 0 {
 			return s.repo.SubmitUser(u[0])
 		}
-		return s.repo.SaveUser(u[0])
+		err := s.repo.SaveUser(u[0])
+		s.repo.FixLadder()
+		return err
 	}
 	return s.saveMany(u)
 }
@@ -37,6 +39,7 @@ func (s *UserService) saveMany(users []*User) error {
 		arr = append(arr, *u)
 	}
 	_, err := s.repo.SaveUsers(arr)
+	s.repo.FixLadder()
 	return err
 }
 

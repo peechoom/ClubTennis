@@ -55,6 +55,7 @@ func (r *UserRepository) SubmitUsers(u []models.User) error {
 
 // updates a user's info in the DB
 func (r *UserRepository) SaveUser(u *models.User) error {
+
 	return r.db.Save(u).Error
 }
 
@@ -140,17 +141,59 @@ func (r *UserRepository) FindAdmins() (u []models.User, err error) {
 	return
 }
 
+// fixes all ladders
 func (r *UserRepository) FixLadder() {
-	ladder, err := r.FindAll()
+	users, err := r.FindAll()
 	if err != nil {
 		return
 	}
-	sort.Slice(ladder, func(i, j int) bool {
-		return ladder[i].Rank < ladder[j].Rank
-	})
-
-	for i := range ladder {
-		ladder[i].Rank = uint(i + 1)
+	//get all ladders
+	ladders := removeDuplicates(mapSlice(users, func(u models.User) string { return u.Ladder }))
+	var filtered [][]models.User
+	// make a different ladder for each ladder type
+	for range ladders {
+		filtered = append(filtered, []models.User{})
 	}
-	r.SaveUsers(ladder)
+	// populate the different ladders with the people in them
+	for _, u := range users {
+		var i int = 0
+		//find what ladder u is in
+		for ; i < len(ladders) && u.Ladder != ladders[i]; i++ {
+		}
+		//put u in it
+		filtered[i] = append(filtered[i], u)
+	}
+	// sort and fix each ladder, save all the users
+	for _, ladder := range filtered {
+		sort.Slice(ladder, func(i, j int) bool {
+			if ladder[i].Rank == ladder[j].Rank {
+				return ladder[i].UpdatedAt.After(ladder[j].UpdatedAt)
+			}
+			return ladder[i].Rank < ladder[j].Rank
+		})
+		for i := range ladder {
+			ladder[i].Rank = uint(i + 1)
+		}
+		r.SaveUsers(ladder)
+	}
+
+}
+
+func mapSlice[T, V any](ts []T, fn func(T) V) []V {
+	result := make([]V, len(ts))
+	for i, t := range ts {
+		result[i] = fn(t)
+	}
+	return result
+}
+func removeDuplicates[T comparable](s []T) []T {
+	var set map[T]int = make(map[T]int)
+	for _, x := range s {
+		set[x] = 0
+	}
+	var ret []T
+	for k := range set {
+		ret = append(ret, k)
+	}
+	return ret
 }

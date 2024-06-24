@@ -7,7 +7,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +33,7 @@ func NewAnnouncementController(announcementService *services.AnnouncementService
 		emailService:        emailService,
 		userService:         userService,
 		imageService:        imageService,
-		serverHost:          "http://" + host + ":" + port}
+		serverHost:          "http://" + host}
 }
 
 //---------------------------------------------------------------------------------------------------------
@@ -139,4 +141,33 @@ func (a *AnnouncementController) emailEveryone(c *gin.Context, ann *models.Annou
 		return err
 	}
 	return nil
+}
+
+func (a *AnnouncementController) DeleteAnnouncement(c *gin.Context) {
+	var payload gin.H
+	c.BindJSON(payload)
+	if payload["id"] == nil {
+		c.String(http.StatusBadRequest, "id field not present")
+		return
+	}
+	ann, err := a.announcementService.GetAnnouncementByID(payload["id"].(uint))
+	if err != nil || ann.ID == 0 {
+		c.Error(err)
+		c.String(http.StatusNotFound, "announcement not found")
+		return
+	}
+	go a.deleteImages(strings.Clone(ann.Data))
+	a.announcementService.DeleteAnnouncement(ann.ID)
+
+	c.JSON(http.StatusOK, gin.H{"message": "announcement deleted successfully"})
+}
+
+func (a *AnnouncementController) deleteImages(body string) {
+	//thanks chatgpt
+	re := regexp.MustCompile(`<img[^>]*\bsrc=["']([a-fA-F0-9]{32}\.\w{1,5})["'][^>]*>`)
+
+	matches := re.FindAllStringSubmatch(body, -1)
+	for _, match := range matches {
+		a.imageService.Delete(match[1])
+	}
 }

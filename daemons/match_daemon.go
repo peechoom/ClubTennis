@@ -71,7 +71,7 @@ func MatchDeletionDaemon(frequency time.Duration, autostart bool, ms *MatchServi
 	for range ticker.C {
 		err := ms.DeleteOldMatches()
 		if err != nil {
-			log.Print("Match Deletion Daemon error: " + err.Error())
+			log.Println("Match Deletion Daemon error: " + err.Error())
 		}
 	}
 }
@@ -86,6 +86,6 @@ func autostartSleep(hour int) {
 		targetTime = targetTime.Add(24 * time.Hour)
 	}
 	d := targetTime.Sub(now)
-	print("daemon thread sleeping for " + d.String())
+	log.Println("daemon thread sleeping for " + d.String())
 	time.Sleep(d)
 }

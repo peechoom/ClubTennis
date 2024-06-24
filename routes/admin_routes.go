@@ -17,6 +17,7 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 	var auth middleware.Authenticator = *middleware.NewAuthenticator(s.TokenService, s.UserService, os.Getenv("SERVER_HOST"))
 	var annCtrl *controllers.AnnouncementController = controllers.NewAnnouncementController(s.AnnouncementService, s.EmailService, s.UserService, s.ImageService)
 	var pubCtrl *controllers.PublicController = controllers.NewPublicController(s.PublicService, s.ImageService)
+	var backCtrl *controllers.BackupController = controllers.NewBackupController(s.UserService)
 	{
 		adminGroup.Use(auth.AuthenticateAdmin)
 
@@ -41,6 +42,11 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 		adminGroup.POST("/members", userCtrl.CreateMember)
 		adminGroup.PUT("/members/:id", userCtrl.EditMember)
 		adminGroup.DELETE("/members/:id", userCtrl.DeleteMember)
+		backupGroup := adminGroup.Group("/backups")
+		{
+			backupGroup.GET("/users", backCtrl.GetBackupSpreadsheet)
+			backupGroup.POST("/users", backCtrl.LoadBackupSpreadsheet)
+		}
 
 		// for announcements
 		adminGroup.POST("/announcements", annCtrl.SubmitPost)

@@ -31,10 +31,25 @@ func (r *AnnouncementRepository) GetAnnouncementPage(page int, perPage int) (ann
 	return
 }
 
+func (r *AnnouncementRepository) GetAnnouncementByID(ID uint) (*models.Announcement, error) {
+	var ann models.Announcement
+	ann.ID = ID
+	err := r.db.First(&ann).Error
+	return &ann, err
+}
+
 func (r *AnnouncementRepository) EditAnnouncement(ann *models.Announcement) error {
 	if ann.ID == 0 {
 		return errors.New("must include announcement id in announcement in order to edit")
 	}
 
 	return r.db.Save(ann).Error
+}
+
+func (r *AnnouncementRepository) DeleteAnnouncement(ann *models.Announcement) error {
+	if ann.ID == 0 {
+		return errors.New("must include announcement id in announcement in order to edit")
+	}
+
+	return r.db.Unscoped().Where("id = ?", ann.ID).Delete(ann).Error
 }

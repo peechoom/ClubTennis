@@ -32,3 +32,18 @@ func (s *AnnouncementService) SubmitAnnouncement(ann *models.Announcement) error
 func (s *AnnouncementService) EditAnnouncement(ann *models.Announcement) error {
 	return s.repo.EditAnnouncement(ann)
 }
+
+func (s *AnnouncementService) GetAnnouncementByID(announcementID uint) (ann *models.Announcement, err error) {
+	ann = &models.Announcement{}
+	ann, err = s.repo.GetAnnouncementByID(announcementID)
+	return
+}
+
+func (s *AnnouncementService) DeleteAnnouncement(announcementID uint) error {
+	// TODO delete this check its redundant
+	ann, err := s.repo.GetAnnouncementByID(announcementID)
+	if err != nil {
+		return err
+	}
+	return s.repo.DeleteAnnouncement(ann)
+}
