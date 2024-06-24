@@ -35,3 +35,5 @@ COPY --from=builder /app/static ./static
 COPY --from=builder /app/templates ./templates
 COPY --from=builder /app/scripts/wait_for_it.sh ./scripts/wait_for_it.sh
 RUN chmod +x ./scripts/wait_for_it.sh
+
+HEALTHCHECK --interval=5s --timeout=2s --start-period=3s --retries=3 CMD [ "nc", "-z", "server", "8080" ]

@@ -3,6 +3,8 @@ services:
     build:
       dockerfile: Dockerfile
       context: .
+    environment:
+      - SERVER_HEALTYH=FALSE
     links:
       - "mysql:database"
     depends_on:
