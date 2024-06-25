@@ -9,7 +9,7 @@ services:
       - "mysql:database"
     depends_on:
       - mysql # db must be started before server
-    entrypoint: [./scripts/wait_for_it.sh, "mysql:3033", "--", "./main"] #ensure the server waits for the db
+    entrypoint: [./scripts/wait_for_it.sh, "mysql:3306", "--", "./main"] #ensure the server waits for the db
 
   caddy:
     image: caddy:latest

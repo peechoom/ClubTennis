@@ -30,3 +30,4 @@ docker compose up -d --no-deps --scale server=1 --no-recreate server
 echo "$(date --utc +%FT%TZ): Reloading Caddy..."
 CADDY_CONTAINER=$(docker ps -aqf "name=caddy")
 docker exec $CADDY_CONTAINER caddy reload -c /etc/caddy/Caddyfile
+yes | docker image prune
