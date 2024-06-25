@@ -12,7 +12,7 @@ services:
     entrypoint: [./scripts/wait_for_it.sh, "mysql:3306", "--", "./main"] #ensure the server waits for the db
 
   caddy:
-    image: caddy:latest
+    image: caddy:2-alpine
     restart: unless-stopped
     ports:
       - "80:80"
