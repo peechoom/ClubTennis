@@ -15,7 +15,7 @@ type MatchService struct {
 }
 
 // how long we should consider "recent matches"
-const recentMatchesDays = 7
+// const recentMatchesDays = 7
 
 const matchExpiresDays = 9
 
