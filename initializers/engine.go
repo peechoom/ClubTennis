@@ -9,7 +9,8 @@ import (
 )
 
 func GetEngine() *gin.Engine {
-	e := gin.Default()
+	e := gin.New()
+	e.Use(gin.Recovery())
 
 	e = e.Delims("{[{", "}]}")
 	e.LoadHTMLGlob("templates/*.html")
