@@ -46,7 +46,7 @@ func NewTokenService(repo *repositories.TokenRepository,
 	}
 }
 
-// just needs a repo, generates random rsa and symmetric keys by itself
+// just needs a repo, generates random rsa and symmetric keys by itself.
 func DefaultTokenService(repo *repositories.TokenRepository) *TokenService {
 	const rsaBitSize int = 2048
 	priv, err := rsa.GenerateKey(rand.Reader, rsaBitSize)
