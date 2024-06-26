@@ -60,7 +60,6 @@ func IsCleanHTML(data string) bool {
 		"<button>",
 		"<select>",
 		"<textarea>",
-		"href",
 		"<!--",
 	}
 
