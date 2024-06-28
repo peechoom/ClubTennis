@@ -126,7 +126,9 @@ func commonEmailMap() map[string]string {
 	v := make(map[string]string)
 
 	link := "https://" + host + "/static/"
-
+	v[sentinalOpen+"email_header"+sentinalClose] = link + "email_header.webp"
+	v[sentinalOpen+"challenger_title_link"+sentinalClose] = link + "challenger.webp"
+	v[sentinalOpen+"challenged_title_link"+sentinalClose] = link + "challenged.webp"
 	v[sentinalOpen+"tuffy_head_small_link"+sentinalClose] = link + "tuffy-small.webp"
 	v[sentinalOpen+"wolfpack_regular_link"+sentinalClose] = link + "Wolfpack-Regular.woff2"
 	v[sentinalOpen+"united_sans_regbold_link"+sentinalClose] = link + "UnitedSansReg-Bold.woff2"
