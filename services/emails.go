@@ -119,14 +119,13 @@ func announcementEmailMap(ann *models.Announcement) (map[string]string, error) {
 
 func commonEmailMap() map[string]string {
 	host := os.Getenv("SERVER_HOST")
-	port := os.Getenv("SERVER_PORT")
 
-	if host == "" || port == "" {
+	if host == "" {
 		return nil
 	}
 	v := make(map[string]string)
 
-	link := "http://" + host + ":" + port + "/static/"
+	link := "https://" + host + "/static/"
 
 	v[sentinalOpen+"tuffy_head_small_link"+sentinalClose] = link + "tuffy-small.webp"
 	v[sentinalOpen+"wolfpack_regular_link"+sentinalClose] = link + "Wolfpack-Regular.woff2"
