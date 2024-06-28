@@ -17,7 +17,6 @@ elif [ $LOCAL = $BASE ]; then
 elif [ $REMOTE = $BASE ]; then
     echo "$(date --utc +%FT%TZ): Local changes detected, stashing"
     git stash
-    ./scripts/deploy.sh
 else
     echo "$(date --utc +%FT%TZ): git is diverged. What did you do???"
 fi
