@@ -1,3 +1,6 @@
+ncsutennis.club {
+	reverse_proxy server:8080
+}
 
 localhost {
 	reverse_proxy server:8080
