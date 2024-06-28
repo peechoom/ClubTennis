@@ -31,7 +31,7 @@ func NewPublicController(publicService *services.PublicService, imageservice *se
 /*
 	GET .../welcome
 
-gets the custom welcome snippet for the homepage
+gets the custom welcome snippet for the homepage.
 */
 func (p *PublicController) GetWelcome(c *gin.Context) {
 	s, err := p.publicService.GetCustomHomePage()
