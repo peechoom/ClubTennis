@@ -3,8 +3,12 @@ package controllers
 import (
 	"ClubTennis/models"
 	"ClubTennis/services"
+	"io"
 	"net/http"
+	"os"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,20 +27,6 @@ func NewPublicController(publicService *services.PublicService, imageservice *se
 
 // --------------------------------------------------------------------------------------
 // GET routings
-
-/*
-	GET .../slides
-
-gets the slideshow for the homepage
-*/
-func (p *PublicController) GetSlideshow(c *gin.Context) {
-	slides, err := p.publicService.GetSlideshow()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not get slides"})
-		return
-	}
-	c.JSON(http.StatusOK, slides)
-}
 
 /*
 	GET .../welcome
@@ -74,29 +64,67 @@ func (p *PublicController) GetImage(c *gin.Context) {
 }
 
 // --------------------------------------------------------------------------------------
-// PUT routings
+// PUT/POST routings
+
 /*
-	PUT /admin/slides/:slideNum
+	POST /admin/slides/:slideNum
 
 uploads new slides to the homepage. expects a slidenum in the url and json with a data field containing the image
 base64 representation
 */
-func (p *PublicController) PutSlides(c *gin.Context) {
-	str := c.Param("slideNum")
+func (p *PublicController) PostSlides(c *gin.Context) {
+	slideStr := c.Param("slideNum")
+	num, err := strconv.ParseInt(slideStr, 10, 0)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "slide number not present/correct"})
+		return
+	}
+	if int(num) > services.SLIDE_COUNT || int(num) <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "slide number out of range"})
+		return
+	}
 
-	slideNum, err := strconv.ParseInt(str, 10, 0)
+	file, err := c.FormFile("data")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "slide num not valid"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "image data not present"})
 		return
 	}
-	var payload gin.H
-	c.BindJSON(&payload)
-	err = p.publicService.PutSlide(int(slideNum), (payload["data"].(string)))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "slide not allowed. is it too big?"})
+	if strings.Contains(file.Filename, "/") {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "bad filename"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "accepted"})
+	// file should be less than 8MB
+	if file.Size > 8*1024*1024 {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "image too big"})
+		return
+	}
+	reg := regexp.MustCompile(`^.*\.(?:png|jpg|jpeg|webp|PNG|JPG|JPEG|WEBP)$`)
+	if !reg.MatchString(file.Filename) {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "bad filetype"})
+		return
+	}
+
+	oldFilename := os.TempDir() + "/" + file.Filename
+	c.SaveUploadedFile(file, oldFilename)
+	defer os.Remove(oldFilename)
+
+	err = services.ConvertToWebp(oldFilename, "static/slide"+slideStr+".webp")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "error converting to webp"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "file uploaded successfully"})
+
+	go func(from, to string) {
+		var in, out *os.File
+		in, _ = os.Open(from)
+		defer in.Close()
+		out, _ = os.Create(to)
+		defer out.Close()
+		_, err = io.Copy(out, in)
+		return
+	}("static/slide"+slideStr+".webp", os.Getenv("SERVER_FILES_MOUNTPOINT")+"/slide"+slideStr+".webp")
 }
 
 /*

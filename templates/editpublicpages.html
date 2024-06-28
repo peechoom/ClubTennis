@@ -90,6 +90,9 @@
             </div>
         </div>
         <h3>Upload New Slides</h3>
+        <p><i>These are kinda finicky, only upload one image at a time</i></p>
+        <p><i>Refresh this page to view your changes</i></p>
+
         <form id="uploadForm">
             <div class="mb-3">
                 <label for="file1" class="form-label">Slide 1</label>
@@ -157,21 +160,30 @@
 
             // Function to fetch and display current slides
             function fetchSlides() {
-                $.get('/slides', function(data) {
-                    $('#currentSlides').empty();
-                    data.sort((x, y) => x.SlideNum - y.SlideNum);
-                    data.forEach(function(slide, index) {
-                        const slideHTML = `
-                            <div class="col-md-4 mb-3">
-                                <div class="card">
-                                    <img src="${slide.Data}" class="card-img-top" alt="Slide ${index + 1}">
-                                    <div class="card-body">
-                                        <p class="card-text">Slide ${index + 1}</p>
-                                    </div>
+                // Array to hold slide numbers
+                const slideNumbers = [1, 2, 3, 4, 5];
+
+                // Clear existing slides
+                $('#currentSlides').empty();
+
+                // Fetch each slide
+                slideNumbers.forEach(function(slideNum) {
+                    // Construct the image source URL
+                    const slideURL = `/static/slide${slideNum}.webp`;
+
+                    // Create the HTML for each slide
+                    const slideHTML = `
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <img src="${slideURL}" class="card-img-top" alt="Slide ${slideNum}">
+                                <div class="card-body">
+                                    <p class="card-text">Slide ${slideNum}</p>
                                 </div>
-                            </div>`;
-                        $('#currentSlides').append(slideHTML);
-                    });
+                            </div>
+                        </div>`;
+
+                    // Append the slide HTML to #currentSlides
+                    $('#currentSlides').append(slideHTML);
                 });
             }
 
@@ -188,37 +200,36 @@
 
                     // Check if file is present
                     if (file) {
-                        if (file.size > 10 * 1024 * 1024) {
+                        if (file.size > 10 * 1024 * 1024) { // Check if file is larger than 10 MB
                             alert('File ' + i + ' is larger than 10 MB');
                             return;
                         }
 
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            const base64Data = 'data:image/' + file.type.split('/')[1] + ';base64,' + e.target.result.split(',')[1]; // Add prefix
-                            $.ajax({
-                                url: '/admin/slides/' + i,
-                                type: 'PUT',
-                                data: JSON.stringify({ data: base64Data }),
-                                contentType: 'application/json',
-                                success: function(response) {
-                                    console.log('File ' + i + ' uploaded successfully');
-                                    // Clear the file input field
-                                    fileInput.value = '';
-                                    // Fetch and update the slides after upload
-                                    fetchSlides();
-                                    for (let i = 0; i < 5; i++) {
-                                        document.getElementById('file' + i).value = '';
-                                    }
-                                },
-                                error: function(error) {
-                                    console.error('Error uploading file ' + i);
+                        const formData = new FormData();
+                        formData.append('data', file);
+
+                        $.ajax({
+                            url: '/admin/slides/' + (i + 1),
+                            type: 'POST',
+                            data: formData,
+                            contentType: false,
+                            processData: false,
+                            success: function(response) {
+                                console.log('File ' + i + ' uploaded successfully');
+                                // Clear the file input field
+                                fileInput.value = '';
+
+                                for (let i = 0; i < 5; i++) {
+                                    document.getElementById('file' + i).value = '';
                                 }
-                            });
-                        };
-                        reader.readAsDataURL(file);
+                            },
+                            error: function(error) {
+                                console.error('Error uploading file ' + i);
+                            }
+                        });
                     }
                 }
+                fetchSlides();
             });
         });
     </script>

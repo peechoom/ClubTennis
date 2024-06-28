@@ -23,7 +23,6 @@ func SetPublicRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 		r.GET("/signin", controllers.SigninHandler)
 		r.GET("/signin.html", controllers.SigninHandler)
 
-		r.GET("/slides", pubCtrl.GetSlideshow)
 		r.GET("/welcome", pubCtrl.GetWelcome)
 
 		r.NoRoute(controllers.ErrorHandler)

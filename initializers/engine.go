@@ -11,6 +11,7 @@ import (
 func GetEngine() *gin.Engine {
 	e := gin.New()
 	e.Use(gin.Recovery())
+	e.Use(gin.Logger())
 
 	e = e.Delims("{[{", "}]}")
 	e.LoadHTMLGlob("templates/*.html")

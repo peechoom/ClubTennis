@@ -3,28 +3,27 @@ package services
 import (
 	"ClubTennis/models"
 	"ClubTennis/repositories"
-	"bytes"
-	"encoding/base64"
 	"errors"
-	"fmt"
-	"image"
-	"image/jpeg"
+	"io"
 	"os"
+	"path/filepath"
+	"strconv"
 
+	"github.com/h2non/bimg"
 	"gorm.io/gorm"
 )
 
 // service for all public-facing resources
 type PublicService struct {
-	slideRepo   *repositories.SlideRepository
 	snippetRepo *repositories.SnippetRepository
 }
 
 // max of 10 mb
 const MAX_IMG_SIZE int = 10 * 1024 * 1024
+const SLIDE_COUNT = 5
 
 func NewPublicService(db *gorm.DB) *PublicService {
-	s := PublicService{slideRepo: repositories.NewSlideRepository(db), snippetRepo: repositories.NewSnippetRepository(db)}
+	s := PublicService{snippetRepo: repositories.NewSnippetRepository(db)}
 	if (&s).ensureSlideCount() != nil {
 		return nil
 	}
@@ -44,38 +43,59 @@ func (s *PublicService) ensureHomepage() error {
 
 // ensures there are 5 slides. fills in missing slides with nc state wallpaper
 func (s *PublicService) ensureSlideCount() error {
-	slides, err := s.GetSlideshow()
-	if err != nil {
-		return err
-	}
+	for i := 1; i <= SLIDE_COUNT; i++ {
+		staticFilename := "static/slide" + strconv.FormatInt(int64(i), 10) + ".webp"
+		persistFilename := os.Getenv("SERVER_FILES_MOUNTPOINT") + "/slide" + strconv.FormatInt(int64(i), 10) + ".webp"
 
-	missing := make([]int, repositories.SLIDE_COUNT)
-	for _, s := range slides {
-		missing[s.SlideNum] = 1
-	}
-	for i, n := range missing {
-		if n == 0 {
-			content, err := encodeImageToBase64("./static/wallpaper.jpg")
-			if err != nil {
+		_, err := os.Stat(persistFilename)
+
+		if errors.Is(err, os.ErrNotExist) {
+			if e := ConvertToWebp("static/wallpaper.jpg", staticFilename); e != nil {
+				return e
+			}
+		} else {
+			if err = func() (err error) {
+				var in, out *os.File
+				if in, err = os.Open(persistFilename); err != nil {
+					return err
+				}
+				defer in.Close()
+				if out, err = os.Create(staticFilename); err != nil {
+					return err
+				}
+				defer out.Close()
+				_, err = io.Copy(out, in)
+				return
+			}(); err != nil {
 				return err
 			}
-			s.PutSlide(i, content)
 		}
 	}
-
 	return nil
 }
 
-func (s *PublicService) GetSlideshow() ([]models.Slide, error) {
-	return s.slideRepo.GetSlideshow()
-}
-
-func (s *PublicService) PutSlide(slideNum int, slide string) error {
-	l := len(slide)
-	if l <= 0 || l > MAX_IMG_SIZE {
-		return errors.New("size out of bounds")
+// expects filename like /tmp/file and output filename like static/image.webp. must be webp
+func ConvertToWebp(filename, outputName string) error {
+	dir := filepath.Dir(outputName)
+	info, err := os.Stat(dir)
+	if err != nil || !info.IsDir() {
+		return err
 	}
-	return s.slideRepo.SaveSlide(slideNum, slide)
+
+	data, err := bimg.Read(filename)
+	if err != nil {
+		return err
+	}
+	newData, err := bimg.NewImage(data).Convert(bimg.WEBP)
+	if err != nil {
+		return err
+	}
+	if bimg.NewImage(newData).Type() != "webp" {
+		return err
+	}
+
+	bimg.Write(outputName, newData)
+	return nil
 }
 
 func (s *PublicService) SetCustomHomePage(snippet *models.Snippet) error {
@@ -88,34 +108,4 @@ func (s *PublicService) GetCustomHomePage() (*models.Snippet, error) {
 		return nil, errors.New("homepage not yet set")
 	}
 	return snip, nil
-}
-
-func encodeImageToBase64(filepath string) (string, error) {
-	// Open the file
-	file, err := os.Open(filepath)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	// Read the image
-	img, _, err := image.Decode(file)
-	if err != nil {
-		return "", err
-	}
-
-	// Encode the image to JPEG format
-	var buf bytes.Buffer
-	err = jpeg.Encode(&buf, img, nil)
-	if err != nil {
-		return "", err
-	}
-
-	// Convert to Base64 encoding
-	base64Str := base64.StdEncoding.EncodeToString(buf.Bytes())
-
-	// Prefix with data URI scheme
-	dataURI := fmt.Sprintf("data:image/jpg;base64,%s", base64Str)
-
-	return dataURI, nil
 }

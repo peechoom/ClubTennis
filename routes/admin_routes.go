@@ -52,7 +52,7 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 		adminGroup.POST("/announcements", annCtrl.SubmitPost)
 
 		//for public facing things
-		adminGroup.PUT("/slides/:slideNum", pubCtrl.PutSlides)
+		adminGroup.POST("/slides/:slideNum", pubCtrl.PostSlides)
 		adminGroup.PUT("/welcome", pubCtrl.PutWelcome)
 	}
 }

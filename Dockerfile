@@ -3,7 +3,6 @@ FROM golang:1.21.10-alpine3.18 AS builder
 
 # Set environment variables
 ENV GO111MODULE=on \
-    CGO_ENABLED=0 \
     GOOS=linux \
     GOARCH=amd64
 
@@ -16,6 +15,9 @@ COPY go.mod go.sum ./
 # Download and cache dependencies
 RUN go mod download
 
+# Download libvps dependancy for webp compression (required by https://github.com/h2non/bimg)
+RUN apk add --no-cache vips vips-dev gcc musl-dev
+
 # Copy the entire source code to the container
 COPY . .
 
@@ -23,11 +25,14 @@ COPY . .
 RUN chmod -x ./scripts/wait_for_it.sh
 
 # Build the Go application
-RUN go build -o main
+RUN GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o main
+
+
 
 # Define the final image for running the application
 FROM alpine:3.18
 RUN apk add --no-cache bash
+RUN apk add --no-cache vips vips-dev
 WORKDIR /app
 COPY --from=builder /app/main .
 COPY --from=builder /app/config/.env ./config/.env

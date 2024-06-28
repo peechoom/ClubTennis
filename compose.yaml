@@ -4,7 +4,9 @@ services:
       dockerfile: Dockerfile
       context: .
     environment:
-      - SERVER_HEALTYH=FALSE
+      - SERVER_HEALTHY=FALSE
+    volumes:
+      - server_files:${SERVER_FILES_MOUNTPOINT}
     links:
       - "mysql:database"
     depends_on:
@@ -37,3 +39,4 @@ volumes:
   mysql_data:
   caddy_data:
   caddy_config:
+  server_files:

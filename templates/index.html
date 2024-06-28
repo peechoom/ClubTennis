@@ -56,12 +56,7 @@
     <script> 
         var app = angular.module('index', []);
         app.controller('indexController', function($scope, $sce, $http) {
-            $scope.slides = [];
             $scope.welcome = {};
-
-            $http.get("/slides").then(function(response) {
-                $scope.slides = response.data.sort((x, y) => x.SlideNum - y.SlideNum).map(x => x.Data);
-            });
             $http.get("/welcome").then(function(response) {
                 $scope.welcome = $sce.trustAsHtml(response.data.Data);
             });
@@ -100,22 +95,34 @@
 
     <!-- Content -->
     <div class="container mt-5">
-        <!-- Slideshow -->
-        <div id="slideshow" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-inner">
-                <div class="carousel-item" ng-repeat="slide in slides track by $index" ng-class="{active: $index === 0}">
-                    <img ng-src="{{slide}}" class="d-block w-100" alt="homepage slideshow picture">
-                </div>
+    <!-- Slideshow -->
+    <div id="slideshow" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="/static/slide1.webp" class="d-block w-100" alt="homepage slideshow picture">
             </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#slideshow" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#slideshow" data-bs-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Next</span>
-            </button>
+            <div class="carousel-item">
+                <img src="/static/slide2.webp" class="d-block w-100" alt="homepage slideshow picture">
+            </div>
+            <div class="carousel-item">
+                <img src="/static/slide3.webp" class="d-block w-100" alt="homepage slideshow picture">
+            </div>
+            <div class="carousel-item">
+                <img src="/static/slide4.webp" class="d-block w-100" alt="homepage slideshow picture">
+            </div>
+            <div class="carousel-item">
+                <img src="/static/slide5.webp" class="d-block w-100" alt="homepage slideshow picture">
+            </div>
         </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#slideshow" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#slideshow" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
 
         <!-- Lorem Ipsum Text -->
         <div class="container mt-5">
