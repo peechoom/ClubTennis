@@ -70,6 +70,25 @@
         app.controller('announcementsController', function($scope, $sce, $http) {
             $scope.page = 0;
             $scope.announcements = [];
+            $scope.me = {};
+            $scope.idMap = {}; 
+
+            function loadMembers() {
+                return $http.get("/club/members").then(function(response) {
+                    let members = response.data
+                    $scope.idMap = new Map(members.map((m) => [m.ID, m]));
+                    return getPrincipal();
+                });
+            }
+            function getPrincipal() {
+                $http.get("/auth/me").then(function(success) {
+                    uid = success.data.user_id;
+                    $scope.me = $scope.idMap.get(uid);
+                }, function(rejection) {
+                    console.error("principal not found");
+                });
+            }
+
             function formatDateTime(dateTimeStr) {
                 const date = new Date(dateTimeStr);
                 const now = new Date();
@@ -90,10 +109,17 @@
 
             $scope.getAnnouncements = function() {
                 return $http.get("/club/announcements/" + $scope.page).then(function(success) {
-                    $scope.announcements = success.data.map(x => ({html: $sce.trustAsHtml(x.Data), uploadDate: formatDateTime(x.CreatedAt)}))
+                    $scope.announcements = success.data.map(x => ({ID: x.ID, html: $sce.trustAsHtml(x.Data), uploadDate: formatDateTime(x.CreatedAt)}))
                 }, function(failure) {
                     //print error idk mane
                 });
+            }
+            $scope.delete = function(ID) {
+                return $http.delete("/admin/announcements/" + ID).then(function(success) {
+                    alert("deleted message " + ID)
+                }, function(failure) {
+                    alert("could not delete message " + ID)
+                }).then($scope.getAnnouncements)
             }
             $scope.prevPage = function() {
               if($scope.page <= 0) return;
@@ -107,7 +133,7 @@
               window.scrollTo(0, 0);
               $scope.getAnnouncements();
             }
-
+            loadMembers();
             $scope.getAnnouncements();
         });
     </script>
@@ -152,7 +178,7 @@
         <div id="announcements-container" class="container">
           <div ng-repeat="announcement in announcements">
             <div class="announcement-box" ng-bind-html="announcement.html"></div>
-            <p>Posted {{announcement.uploadDate}}</p>
+            <p>Posted {{announcement.uploadDate}} <a ng-if="me.IsOfficer" class="link-primary" ng-click="delete(announcement.ID)">(Delete)</a></p>
           </div>
         </div>
         <div class="d-flex justify-content-center">

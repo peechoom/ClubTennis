@@ -32,8 +32,8 @@ func (r *ImageRepository) FindByFileName(filename string) (*models.Image, error)
 }
 
 func (r *ImageRepository) DeleteByFileName(filename string) error {
-	var img models.Image
-	err := r.db.Select("id", "file_name").Where(&models.Image{FileName: filename}).Take(&img).Error
+	var img []models.Image
+	err := r.db.Select("id", "file_name").Where(&models.Image{FileName: filename}).Find(&img).Error
 	if err != nil {
 		return err
 	}

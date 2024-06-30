@@ -143,14 +143,26 @@ func (a *AnnouncementController) emailEveryone(c *gin.Context, ann *models.Annou
 	return nil
 }
 
+// -------------------------------------------------------------------------------------------
+// DELETE handler
+/*
+
+	.../announcements/:id
+
+*/
 func (a *AnnouncementController) DeleteAnnouncement(c *gin.Context) {
-	var payload gin.H
-	c.BindJSON(payload)
-	if payload["id"] == nil {
-		c.String(http.StatusBadRequest, "id field not present")
+	idStr := c.Param("id")
+	if idStr == "" {
+		c.String(http.StatusBadRequest, "id field not number/present")
 		return
 	}
-	ann, err := a.announcementService.GetAnnouncementByID(payload["id"].(uint))
+	id, err := strconv.ParseUint(idStr, 10, 0)
+	if err != nil {
+		c.String(http.StatusBadRequest, "id field not number/present")
+		return
+	}
+
+	ann, err := a.announcementService.GetAnnouncementByID(uint(id))
 	if err != nil || ann.ID == 0 {
 		c.Error(err)
 		c.String(http.StatusNotFound, "announcement not found")
@@ -164,10 +176,14 @@ func (a *AnnouncementController) DeleteAnnouncement(c *gin.Context) {
 
 func (a *AnnouncementController) deleteImages(body string) {
 	//thanks chatgpt
-	re := regexp.MustCompile(`<img[^>]*\bsrc=["']([a-fA-F0-9]{32}\.\w{1,5})["'][^>]*>`)
-
+	re := regexp.MustCompile(`<img[^>]*\bsrc=["'][^>]*([a-fA-F0-9]{32}\.\w{1,5})["'][^>]*>`)
+	print("uhhhh hello?")
 	matches := re.FindAllStringSubmatch(body, -1)
 	for _, match := range matches {
-		a.imageService.Delete(match[1])
+		println("deleting " + match[1])
+		err := a.imageService.Delete(match[1])
+		if err != nil {
+			println(err)
+		}
 	}
 }

@@ -50,6 +50,7 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 
 		// for announcements
 		adminGroup.POST("/announcements", annCtrl.SubmitPost)
+		adminGroup.DELETE("/announcements/:id", annCtrl.DeleteAnnouncement)
 
 		//for public facing things
 		adminGroup.POST("/slides/:slideNum", pubCtrl.PostSlides)
