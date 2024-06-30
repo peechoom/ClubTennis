@@ -96,7 +96,8 @@
                     LastName: $scope.newLastName,
                     UnityID: $scope.newUnityID,
                     Affiliation: $scope.newAffiliation,
-                    Email: $scope.newEmail,
+                    SigninEmail: $scope.newSigninEmail,
+                    ContactEmail: $scope.newContactEmail,
                     Ladder: $scope.newLadder,
                     IsOfficer: $scope.newIsOfficer // Adding IsOfficer field
                 };
@@ -108,7 +109,8 @@
                     $scope.newLastName = '';
                     $scope.newUnityID = '';
                     $scope.newAffiliation = '';
-                    $scope.newEmail = '';
+                    $scope.newSigninEmail = '';
+                    $scope.newContactEmail = '';
                     $scope.newLadder = '';
                     $scope.newIsOfficer = false; // Resetting the IsOfficer checkbox
                 });
@@ -218,10 +220,95 @@
             </div>
         </div>
     </div>
-
     <div class="container">
-        <h1>Club Tennis Members</h1>
-        <table class="table">
+        <!-- Admin Console -->
+        <h2 class="text-center mt-4">Admin Console</h2>
+
+        <!-- Add New Member Form -->
+        <h4 class="text-center mt-4">Add New Member</h4>
+        <form ng-submit="addMember()">
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">First Name:</label>
+                <div class="col-sm-10">
+                    <input type="text" ng-model="newFirstName" class="form-control" placeholder="First Name" required>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Last Name:</label>
+                <div class="col-sm-10">
+                    <input type="text" ng-model="newLastName" class="form-control" placeholder="Last Name" required>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Unity ID:</label>
+                <div class="col-sm-10">
+                    <input type="text" ng-model="newUnityID" class="form-control" placeholder="Unity ID" required>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Affiliation:</label>
+                <div class="col-sm-10">
+                    <input type="text" ng-model="newAffiliation" class="form-control" placeholder="Affiliation" required>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Signin Email:</label>
+                <div class="col-sm-10">
+                    <input type="email" ng-model="newSigninEmail" class="form-control" placeholder="Signin Email" required>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Contact Email:</label>
+                <div class="col-sm-10">
+                    <input type="email" ng-model="newContactEmail" class="form-control" placeholder="Contact Email" required>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Ladder:</label>
+                <div class="col-sm-10">
+                    <input type="text" ng-model="newLadder" class="form-control" placeholder="Ladder">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Is Officer:</label>
+                <div class="col-sm-10">
+                    <input type="checkbox" ng-model="newIsOfficer" class="form-check-input">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-10 offset-sm-2">
+                    <button type="submit" class="btn btn-primary">Add Member</button>
+                </div>
+            </div>
+        </form>
+
+        <h4 class="text-center mt-4">Upload/Download User List</h4>
+        <!-- Upload/Download User List -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <h5>Upload Users (.xlsx)</h5>
+                <form ng-submit="uploadUsers()">
+                    <div class="form-group">
+                        <label for="usersFile">Choose file:</label>
+                        <input type="file" id="usersFile" name="users" class="form-control" accept=".xlsx"
+                            onchange="angular.element(this).scope().handleFileChange(this)">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" ng-model="replaceUsers"> Replace existing users
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h5>Download Users</h5>
+                <button ng-click="downloadUsers()" class="btn btn-secondary">Download</button>
+            </div>
+        </div>
+        <!-- Members Table -->
+        <h4 class="text-center mt-4">Members</h4>
+        <table class="table table-striped">
             <thead>
                 <tr>
                     <th>Rank</th>
@@ -229,136 +316,57 @@
                     <th>Last Name</th>
                     <th>Unity ID</th>
                     <th>Affiliation</th>
-                    <th>Email</th>
+                    <th>Signin Email</th>
+                    <th>Contact Email</th>
                     <th>Ladder</th>
-                    <th>Is Officer</th> <!-- New table header -->
+                    <th>Is Officer</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <tr ng-repeat="member in members">
+                    <td>{{ member.Rank }}</td>
                     <td>
-                        <span ng-show="!editMode || editingMember != member">{{member.Rank}}</span>
-                        <input type="number" class="form-control" ng-show="editMode && editingMember == member"
-                            ng-model="member.Rank">
+                        <span ng-show="!editMode || editingMember !== member">{{ member.FirstName }}</span>
+                        <input type="text" ng-show="editMode && editingMember === member" ng-model="editingMember.FirstName" class="form-control">
                     </td>
                     <td>
-                        <span ng-show="!editMode || editingMember != member">{{member.FirstName}}</span>
-                        <input type="text" class="form-control" ng-show="editMode && editingMember == member"
-                            ng-model="member.FirstName">
+                        <span ng-show="!editMode || editingMember !== member">{{ member.LastName }}</span>
+                        <input type="text" ng-show="editMode && editingMember === member" ng-model="editingMember.LastName" class="form-control">
                     </td>
                     <td>
-                        <span ng-show="!editMode || editingMember != member">{{member.LastName}}</span>
-                        <input type="text" class="form-control" ng-show="editMode && editingMember == member"
-                            ng-model="member.LastName">
+                        <span ng-show="!editMode || editingMember !== member">{{ member.UnityID }}</span>
+                        <input type="text" ng-show="editMode && editingMember === member" ng-model="editingMember.UnityID" class="form-control">
                     </td>
                     <td>
-                        <span ng-show="!editMode || editingMember != member">{{member.UnityID}}</span>
-                        <input type="text" class="form-control" ng-show="editMode && editingMember == member"
-                            ng-model="member.UnityID">
+                        <span ng-show="!editMode || editingMember !== member">{{ member.Affiliation }}</span>
+                        <input type="text" ng-show="editMode && editingMember === member" ng-model="editingMember.Affiliation" class="form-control">
                     </td>
                     <td>
-                        <span ng-show="!editMode || editingMember != member">{{member.Affiliation}}</span>
-                        <input type="text" class="form-control" ng-show="editMode && editingMember == member"
-                            ng-model="member.Affiliation">
+                        <span ng-show="!editMode || editingMember !== member">{{ member.SigninEmail }}</span>
+                        <input type="email" ng-show="editMode && editingMember === member" ng-model="editingMember.SigninEmail" class="form-control">
                     </td>
                     <td>
-                        <span ng-show="!editMode || editingMember != member">{{member.Email}}</span>
-                        <input type="text" class="form-control" ng-show="editMode && editingMember == member"
-                            ng-model="member.Email">
+                        <span ng-show="!editMode || editingMember !== member">{{ member.ContactEmail }}</span>
+                        <input type="email" ng-show="editMode && editingMember === member" ng-model="editingMember.ContactEmail" class="form-control">
                     </td>
                     <td>
-                        <span ng-show="!editMode || editingMember != member">{{member.Ladder == 'M' ? 'Mens' : 'Womens'
-                            }}</span>
-                        <select class="form-select" ng-show="editMode && editingMember == member" ng-model="member.Ladder">
-                            <option value="M">Mens</option>
-                            <option value="W">Womens</option>
-                        </select>
+                        <span ng-show="!editMode || editingMember !== member">{{ member.Ladder }}</span>
+                        <input type="text" ng-show="editMode && editingMember === member" ng-model="editingMember.Ladder" class="form-control">
                     </td>
                     <td>
-                        <input type="checkbox" class="form-check-input" ng-model="member.IsOfficer"> <!-- Checkbox for IsOfficer -->
+                        <input type="checkbox" ng-show="editMode && editingMember === member" ng-model="editingMember.IsOfficer" class="form-check-input">
+                        <span ng-show="!editMode || editingMember !== member">{{ member.IsOfficer ? 'Yes' : 'No' }}</span>
                     </td>
                     <td>
-                        <button class="btn btn-primary btn-sm" ng-click="editMember(member)" ng-show="!editMode">Edit</button>
-                        <button class="btn btn-success btn-sm" ng-click="saveMember()"
-                            ng-show="editMode && editingMember == member">Save</button>
-                        <button class="btn btn-danger btn-sm" ng-click="openDeleteModal(member)" ng-show="!editMode">Delete</button>
-                        <button class="btn btn-secondary btn-sm" ng-click="cancelEdit()"
-                            ng-show="editMode && editingMember == member">Cancel</button>
+                        <button class="btn btn-sm btn-primary" ng-click="editMember(member)" ng-show="!editMode || editingMember !== member">Edit</button>
+                        <button class="btn btn-sm btn-success" ng-click="saveMember()" ng-show="editMode && editingMember === member">Save</button>
+                        <button class="btn btn-sm btn-secondary" ng-click="cancelEdit()" ng-show="editMode && editingMember === member">Cancel</button>
+                        <button class="btn btn-sm btn-danger" ng-click="openDeleteModal(member)">Delete</button>
                     </td>
                 </tr>
             </tbody>
         </table>
-        <!-- Download/Upload Section -->
-        <div class="container mt-5">
-            <h2>Backup and Restore Members</h2>
-            <div class="row">
-                <!-- Download Button -->
-                <div class="col-md-6 text-center">
-                    <button class="btn btn-success" ng-click="downloadUsers()">Download Members</button>
-                </div>
-                <!-- Upload Form -->
-                <div class="col-md-6">
-                    <form ng-submit="uploadUsers()">
-                        <div class="mb-3">
-                            <label for="usersFile" class="form-label">Upload Members (.xlsx)</label>
-                            <input type="file" class="form-control" id="usersFile" accept=".xlsx"
-                                onchange="angular.element(this).scope().handleFileChange(this)">
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="replaceUsers" ng-model="replaceUsers">
-                            <label class="form-check-label" for="replaceUsers">Replace Existing Members (this will log everyone out)</label>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Upload Members</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <h2>Add New Member</h2>
-        <form ng-submit="addMember()">
-            <div class="mb-3">
-                <label for="newFirstName" class="form-label">First Name</label>
-                <input type="text" class="form-control" id="newFirstName" ng-model="newFirstName">
-            </div>
-            <div class="mb-3">
-                <label for="newLastName" class="form-label">Last Name</label>
-                <input type="text" class="form-control" id="newLastName" ng-model="newLastName">
-            </div>
-            <div class="mb-3">
-                <label for="newUnityID" class="form-label">Unity ID</label>
-                <input type="text" class="form-control" id="newUnityID" ng-model="newUnityID">
-            </div>
-            <div class="mb-3">
-                <label for="newAffiliation" class="form-label">Affiliation</label>
-                <input type="text" class="form-control" id="newAffiliation" ng-model="newAffiliation">
-            </div>
-            <div class="mb-3">
-                <label for="newEmail" class="form-label">Email</label>
-                <input type="text" class="form-control" id="newEmail" ng-model="newEmail">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Ladder</label>
-                <div>
-                    <input type="radio" id="newMensLadder" name="newLadder" value="M" ng-model="newLadder">
-                    <label for="newMensLadder">Mens</label>
-                </div>
-                <div>
-                    <input type="radio" id="newWomensLadder" name="newLadder" value="W" ng-model="newLadder">
-                    <label for="newWomensLadder">Womens</label>
-                </div>
-            </div>
-            <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="newIsOfficer" ng-model="newIsOfficer">
-                <label class="form-check-label" for="newIsOfficer">Is Officer</label>
-            </div>
-            <button type="submit" class="btn btn-primary">Add Member</button>
-        </form>
-
-        <div class="text-center">
-            <a href="/admin" class="btn btn-primary">Return Home</a>
-        </div>
-
-       
     </div>
 </body>
 

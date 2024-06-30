@@ -16,7 +16,7 @@ func TestNewUser(t *testing.T) {
 	require.Equal(t, user.LastName, "Doe")
 	require.Equal(t, user.Affiliation, "ncsu")
 	require.Equal(t, user.UnityID, "abcde6")
-	require.Equal(t, user.Email, "asdasdfsfd4@ncsu.edu")
+	require.Equal(t, user.SigninEmail, "asdasdfsfd4@ncsu.edu")
 	require.False(t, user.IsOfficer)
 
 	user.SetOfficer(true)
@@ -29,7 +29,7 @@ func TestNewUser(t *testing.T) {
 	require.Equal(t, o.LastName, "Doe")
 	require.Equal(t, o.Affiliation, "skema")
 	require.Equal(t, o.UnityID, "abcde6")
-	require.Equal(t, o.Email, "asfdfsfdesfsd.abdfsfsfsfdsfd@skema.edu")
+	require.Equal(t, o.SigninEmail, "asfdfsfdesfsd.abdfsfsfsfdsfd@skema.edu")
 
 	require.True(t, o.IsOfficer)
 

@@ -125,13 +125,14 @@ func (ctrl *UserController) GetMemberByID(c *gin.Context) {
 // POST handlers
 /*
 	POST ../members
-	expects json containing fields: UnityID, FirstName, LastName, Affiliation, Email, ladder
+	expects json containing fields: UnityID, FirstName, LastName, Affiliation, SigninEmail, ContactEmail, ladder
 
 creates a new member. responds with json representing the member. only admins should be able to call this
 */
 func (ctrl *UserController) CreateMember(c *gin.Context) {
 	var user models.User
 	err := c.BindJSON(&user)
+
 	if err != nil || len(user.UnityID) == 0 {
 		c.String(http.StatusBadRequest, "error interpreting passed user")
 		return

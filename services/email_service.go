@@ -47,8 +47,8 @@ func (s *EmailService) Send(e *email.Email) error {
 }
 
 // makes an indicator/reciept email for the challenger and a notification for the challenged
-func (s *EmailService) MakeChallengeEmails(challenger, challenged *User) (cr *email.Email, cd *email.Email) {
-	v, err := challengeEmailMap(challenger, challenged)
+func (s *EmailService) MakeChallengeEmails(challenger, challenged *User, message string) (cr *email.Email, cd *email.Email) {
+	v, err := challengeEmailMap(challenger, challenged, message)
 	if err != nil {
 		return nil, nil
 	}
@@ -63,12 +63,12 @@ func (s *EmailService) makeChallengerEmail(challenger, challenged *User, v map[s
 	}
 
 	return &email.Email{
-		To:      []string{challenger.Email},
+		To:      []string{challenger.ContactEmail},
 		From:    fmt.Sprintf("NC State Club Tennis <%s>", s.senderAddress),
 		Cc:      []string{s.senderAddress},
 		Subject: fmt.Sprintf("You successfully challenged %s %s", challenged.FirstName, challenged.LastName),
 		HTML:    []byte(htmlBody),
-		Text:    []byte(fmt.Sprintf("You successfully challenged %s %s (%s). You should expect an email from them soon regarding scheduling.", challenged.FirstName, challenged.LastName, challenged.Email)),
+		Text:    []byte(fmt.Sprintf("You successfully challenged %s %s (%s). You should expect an email from them soon regarding scheduling.", challenged.FirstName, challenged.LastName, challenged.ContactEmail)),
 	}
 
 }
@@ -81,16 +81,16 @@ func (s *EmailService) makeChallengedEmail(challenger, challenged *User, v map[s
 	}
 
 	headers := textproto.MIMEHeader{}
-	headers.Add("Reply-To", fmt.Sprintf("%s %s <%s>", challenger.FirstName, challenger.LastName, challenger.Email))
+	headers.Add("Reply-To", fmt.Sprintf("%s %s <%s>", challenger.FirstName, challenger.LastName, challenger.ContactEmail))
 
 	return &email.Email{
-		To:      []string{challenged.Email},
+		To:      []string{challenged.ContactEmail},
 		From:    fmt.Sprintf("NC State Club Tennis <%s>", s.senderAddress),
 		Cc:      []string{s.senderAddress},
 		Headers: headers,
 		Subject: "Club Tennis Challenge Match",
 		HTML:    []byte(htmlBody),
-		Text:    []byte(fmt.Sprintf("You have been challenged by %s %s (%s). Reply to this email to contact them for scheduling.", challenger.FirstName, challenger.LastName, challenger.Email)),
+		Text:    []byte(fmt.Sprintf("You have been challenged by %s %s (%s). Reply to this email to contact them for scheduling.", challenger.FirstName, challenger.LastName, challenger.ContactEmail)),
 	}
 }
 
@@ -119,7 +119,7 @@ func (s *EmailService) MakeAnnouncementEmail(ann *models.Announcement, recipient
 
 // makes an email to the challenged reminding them of the challenge match
 func (s *EmailService) MakeChallengeReminder(challenger, challenged *User) *email.Email {
-	v, err := challengeEmailMap(challenger, challenged)
+	v, err := challengeEmailMap(challenger, challenged, "")
 	if v == nil || err != nil {
 		panic("v")
 	}
@@ -128,22 +128,22 @@ func (s *EmailService) MakeChallengeReminder(challenger, challenged *User) *emai
 		return nil
 	}
 	headers := textproto.MIMEHeader{}
-	headers.Add("Reply-To", fmt.Sprintf("%s %s <%s>", challenger.FirstName, challenger.LastName, challenger.Email))
+	headers.Add("Reply-To", fmt.Sprintf("%s %s <%s>", challenger.FirstName, challenger.LastName, challenger.ContactEmail))
 
 	return &email.Email{
-		To:      []string{challenged.Email},
+		To:      []string{challenged.ContactEmail},
 		From:    fmt.Sprintf("NC State Club Tennis <%s>", s.senderAddress),
 		Cc:      []string{s.senderAddress},
 		Headers: headers,
 		Subject: "Challenge Match Reminder",
 		HTML:    []byte(htmlBody),
-		Text:    []byte(fmt.Sprintf("This is an automated reminder that you have one day left to play %s %s (%s) to defend your position in the ladder, or else the match is automatically considered a forefit.", challenger.FirstName, challenger.LastName, challenger.Email)),
+		Text:    []byte(fmt.Sprintf("This is an automated reminder that you have one day left to play %s %s (%s) to defend your position in the ladder, or else the match is automatically considered a forefit.", challenger.FirstName, challenger.LastName, challenger.ContactEmail)),
 	}
 }
 
 // makes an email telling the user that the forfeit has heppened
 func (s *EmailService) MakeForfeitEmail(challenger, challenged *User) *email.Email {
-	v, err := challengeEmailMap(challenger, challenged)
+	v, err := challengeEmailMap(challenger, challenged, "")
 	if v == nil || err != nil {
 		return nil
 	}
@@ -160,7 +160,7 @@ func (s *EmailService) MakeForfeitEmail(challenger, challenged *User) *email.Ema
 
 func (s *EmailService) stdHeader(recipients ...*User) *email.Email {
 	return &email.Email{
-		To:   mapSlice(recipients, func(u *User) string { return u.Email }),
+		To:   mapSlice(recipients, func(u *User) string { return u.ContactEmail }),
 		From: fmt.Sprintf("Club Tennis <%s>", s.senderAddress),
 		Cc:   []string{s.senderAddress},
 	}

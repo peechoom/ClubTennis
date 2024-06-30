@@ -75,6 +75,7 @@
             $scope.myScore = ''
             $scope.oppScore = ''
             $scope.submissionResponse = ''
+            $scope.message = ''
 
 
             function getPrincipal() {
@@ -166,17 +167,19 @@
                 }
                 data = {
                     "challengerID": $scope.me.ID,
-                    "challengedID": $scope.challenged.ID
+                    "challengedID": $scope.challenged.ID,
+                    "message": $scope.message
                 };
                 $('#challengeConfirmationModal').modal('hide');
 
                 $http.post("/club/matches", data).then(function(success) {
                     $scope.challengeResponse = "You have challenged " + $scope.challenged.FirstName;
                     $('#challengeResponseModal').modal('show');
-
+                    $scope.message = ''
                 }, function(failure) {
                     $scope.challengeResponse = "CHALLENGE MATCH NOT CREATED:" + failure.data;
                     $('#challengeResponseModal').modal('show');
+                    $scope.message = ''
                 }).then(loadMatches).then(mapMatches);
             }
             $scope.submit = function() {
@@ -258,9 +261,9 @@
                 </div>
                 <div class="modal-body">
                     <p>You are about to challenge <strong>{{challenged.FirstName}} {{challenged.LastName}}</strong></p>
-                    <p>continue?</p>
                     <p ng-if="me.Rank < challenged.Rank"><strong>Losing this game will negatively affect your rank!</strong></p>
-
+                    <textarea id="datetextarea" placeholder="Suggest a date and time here..." ng-model="message"></textarea>
+                    <label for="datetextarea">This message will be appended to the challenge email.</label>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -346,14 +349,16 @@
                         <th scope="col">Rank</th>
                         <th scope="col">Name</th>
                         <th scope="col" class="d-none d-md-table-cell">Email</th>
+                        <th scope="col" class="d-none d-md-table-cell">Record</th>
                         <th scope="col"></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr ng-repeat="member in members" ng-if="me.Ladder === member.Ladder">
                         <th scope="row">{{member.Rank}}</th>
-                        <td>{{member.FirstName}} {{member.LastName}}</td>
-                        <td class="d-none d-md-table-cell">{{member.Email}}</td>
+                        <td>{{member.FirstName}} {{member.LastName}} <span ng-if="member.IsOfficer">🌟</span></td>
+                        <td class="d-none d-md-table-cell">{{member.ContactEmail}}</td>
+                        <td class="d-none d-md-table-cell">{{member.Wins}} - {{member.Losses}}</td>
                         <td ng-if="member.IsChallengeable"><button class="btn btn-primary" type="button" ng-click="showChallengePopup(member)">Challenge</button></td>
                         <td ng-if="!member.IsChallengeable"><button class="btn btn-secondary" type="button" >Challenge</button></td>
                     </tr>

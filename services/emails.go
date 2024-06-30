@@ -63,7 +63,7 @@ func (s *EmailService) populateTemplate(template string, v map[string]string) (s
 }
 
 // makes the values map for populating a challenge email template
-func challengeEmailMap(challenger, challenged *User) (map[string]string, error) {
+func challengeEmailMap(challenger, challenged *User, message string) (map[string]string, error) {
 	v := commonEmailMap()
 	if v == nil {
 		return nil, errors.New("env variables not defined")
@@ -75,11 +75,13 @@ func challengeEmailMap(challenger, challenged *User) (map[string]string, error) 
 	v[sentinalOpen+"challenged_firstname"+sentinalClose] = challenged.FirstName
 	v[sentinalOpen+"challenged_lastname"+sentinalClose] = challenged.LastName
 
-	v[sentinalOpen+"challenger_email"+sentinalClose] = challenger.Email
-	v[sentinalOpen+"challenged_email"+sentinalClose] = challenged.Email
+	v[sentinalOpen+"challenger_email"+sentinalClose] = challenger.SigninEmail
+	v[sentinalOpen+"challenged_email"+sentinalClose] = challenged.SigninEmail
 
 	v[sentinalOpen+"challenger_rank"+sentinalClose] = strconv.FormatUint(uint64(challenger.Rank), 10)
 	v[sentinalOpen+"challenged_rank"+sentinalClose] = strconv.FormatUint(uint64(challenged.Rank), 10)
+
+	v[sentinalOpen+"challenger_message"+sentinalClose] = message
 
 	for k, s := range v {
 		if s == "" {

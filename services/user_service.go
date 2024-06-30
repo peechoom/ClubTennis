@@ -69,7 +69,7 @@ func (s *UserService) FindByUnityID(unityID string) (*User, error) {
 }
 
 // returns the user with the given email. It is considered an error if no match is found
-func (s *UserService) FindByEmail(email string) (*User, error) {
+func (s *UserService) FindBySigninEmail(email string) (*User, error) {
 	u, err := s.repo.FindByEmail(email)
 	if err != nil || u.ID == 0 {
 		return nil, err

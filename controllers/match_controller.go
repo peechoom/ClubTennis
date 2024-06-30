@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -162,15 +163,21 @@ expects: challengerID and challengedID in json
 */
 func (ctrl *MatchController) Challenge(c *gin.Context) {
 
-	var m map[string]int
+	var m gin.H
 	err := c.ShouldBindBodyWithJSON(&m)
 	if err != nil {
 		log.Println(err)
 		c.String(http.StatusBadRequest, "post form badly formatted")
 		return
 	}
-	challengerID := m["challengerID"]
-	challengedID := m["challengedID"]
+	challengerID := uint(m["challengerID"].(float64))
+	challengedID := uint(m["challengedID"].(float64))
+	message := m["message"].(string)
+
+	if strings.Contains(message, "<") || strings.Contains(message, ">") {
+		c.String(http.StatusBadRequest, "illegal chars in message")
+		return
+	}
 
 	if challengerID == 0 || challengedID == 0 {
 		log.Println(challengerID)
@@ -180,17 +187,18 @@ func (ctrl *MatchController) Challenge(c *gin.Context) {
 	}
 
 	principleID := c.GetUint("user_id")
-	if principleID != uint(challengerID) {
+	if principleID != challengerID {
 		c.String(http.StatusBadRequest, "You are not the challenger")
+		return
 	}
 
-	challenger, err := ctrl.userservice.FindByID(uint(challengerID))
+	challenger, err := ctrl.userservice.FindByID(challengerID)
 	if err != nil {
 		c.Error(err)
 		c.String(http.StatusNotFound, "Challenger ID not found")
 		return
 	}
-	challenged, err := ctrl.userservice.FindByID(uint(challengedID))
+	challenged, err := ctrl.userservice.FindByID(challengedID)
 	if err != nil {
 		c.Error(err)
 		c.String(http.StatusNotFound, "Opponent ID not found")
@@ -210,18 +218,16 @@ func (ctrl *MatchController) Challenge(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "Internal error")
 		return
 	}
-	//TODO could be a goroutine, but would not notify the user if an error happens :(
-	// this shit is whats slow tho
-	e := ctrl.notifyPlayers(c, match)
+	// this shit is whats slow
+	e := ctrl.notifyPlayers(c, match, message)
 
 	if e != nil {
 		if e != errChallengerNotNotified {
-			c.String(http.StatusInternalServerError, fmt.Sprintf("Challenge created but emails failed to generate. Please contact %s to let %s know about the challenge.", challenged.Email, challenged.FirstName))
+			c.String(http.StatusInternalServerError, fmt.Sprintf("Challenge created but emails failed to generate. Please contact %s to let %s know about the challenge.", challenged.SigninEmail, challenged.FirstName))
 		} else {
 			c.String(http.StatusAccepted, fmt.Sprintf("Challenge created successfully, but due to an internal server error you will not be emailed a reciept. %s has been sucessfully contacted, and should contact you soon", challenged.FirstName))
 		}
 	} else {
-
 		c.JSON(http.StatusCreated, gin.H{"message": "Challenge created successfully"})
 	}
 }
@@ -229,8 +235,8 @@ func (ctrl *MatchController) Challenge(c *gin.Context) {
 var errChallengedNotNotified error = errors.New("challenged player not notified")
 var errChallengerNotNotified error = errors.New("challenger not notified")
 
-func (ctrl *MatchController) notifyPlayers(c *gin.Context, match *models.Match) error {
-	challengerEmail, challengedEmail := ctrl.emailservice.MakeChallengeEmails(match.Challenger(), match.Challenged())
+func (ctrl *MatchController) notifyPlayers(c *gin.Context, match *models.Match, message string) error {
+	challengerEmail, challengedEmail := ctrl.emailservice.MakeChallengeEmails(match.Challenger(), match.Challenged(), message)
 	if challengerEmail == nil || challengedEmail == nil {
 		e := errors.New("could not create emails")
 		c.Error(e)

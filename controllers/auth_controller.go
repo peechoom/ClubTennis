@@ -118,7 +118,7 @@ func (a *AuthController) Callback(c *gin.Context) {
 		return
 	}
 
-	user, err := a.userService.FindByEmail(email)
+	user, err := a.userService.FindBySigninEmail(email)
 	if err != nil || user == nil {
 		if email != os.Getenv("EMAIL_USERNAME") {
 			c.Error(err)

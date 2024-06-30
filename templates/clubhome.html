@@ -273,12 +273,14 @@
                             <tr>
                                 <th scope="col">Rank</th>
                                 <th scope="col">Name</th>
+                                <th class="d-none d-md-table-cell">Record</td>
                             </tr>
                         </thead>
                         <tbody>
                             <tr ng-repeat="member in members" ng-if="member.Ladder === 'M'">
                                 <th scope="row">{{member.Rank}}</th>
-                                <td>{{member.FirstName}} {{member.LastName}}</td>
+                                <td>{{member.FirstName}} {{member.LastName}} <span ng-if="member.IsOfficer">🌟</span></td>
+                                <td class="d-none d-md-table-cell">{{member.Wins}} - {{member.Losses}}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -292,12 +294,14 @@
                             <tr>
                                 <th scope="col">Rank</th>
                                 <th scope="col">Name</th>
+                                <th class="d-none d-md-table-cell">Record</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr ng-repeat="member in members" ng-if="member.Ladder === 'W'">
                                 <th scope="row">{{member.Rank}}</th>
-                                <td>{{member.FirstName}} {{member.LastName}}</td>
+                                <td>{{member.FirstName}} {{member.LastName}} <span ng-if="member.IsOfficer">🌟</span></td>
+                                <td class="d-none d-md-table-cell">{{member.Wins}} - {{member.Losses}}</td>
                             </tr>
                         </tbody>
                     </table>

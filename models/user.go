@@ -13,8 +13,9 @@ type User struct {
 	Affiliation     string   //ncsu.edu or skema.edu
 	FirstName       string   //users first name
 	LastName        string   //users last name
-	Email           string   `gorm:"index:,unique,sort:desc,type:btree,length:100"` //users e-mail address
-	Rank            uint     `gorm:"index:,sort:desc"`                              //users rank in the ladder, should be unique
+	SigninEmail     string   `gorm:"index:,unique,sort:desc,type:btree,length:100"` //users e-mail address
+	ContactEmail    string   //users email address for sending emails to (is usually the same as signin email)
+	Rank            uint     `gorm:"index:,sort:desc"` //users rank in the ladder, should be unique
 	Wins            int      //how many wins the player has
 	Losses          int      //how many losses the player has
 	Matches         []*Match `gorm:"constraint:OnDelete:CASCADE;many2many:user_matches"` //list of matches the player is involved in
@@ -48,9 +49,10 @@ func NewUser(UnityID string, Affiliation string, FirstName string, LastName stri
 	u.Affiliation = Affiliation
 	u.FirstName = FirstName
 	u.LastName = LastName
-	u.Email = Email
+	u.SigninEmail = Email
 	u.IsOfficer = false
 	u.Ladder = Ladder
+	u.ContactEmail = u.SigninEmail
 	return u, nil
 }
 
@@ -93,14 +95,17 @@ func (u *User) EditUser(nu *User) {
 	if len(nu.LastName) != 0 {
 		u.LastName = nu.LastName
 	}
-	if len(nu.Email) != 0 && isValidEmail(nu.Email) {
-		u.Email = nu.Email
+	if len(nu.SigninEmail) != 0 && isValidEmail(nu.SigninEmail) {
+		u.SigninEmail = nu.SigninEmail
 	}
 	if nu.Rank != 0 {
 		u.Rank = nu.Rank
 	}
 	if nu.Ladder != "" {
 		u.Ladder = nu.Ladder
+	}
+	if nu.ContactEmail != "" {
+		u.ContactEmail = nu.ContactEmail
 	}
 	u.Wins = nu.Wins
 	u.Losses = nu.Losses

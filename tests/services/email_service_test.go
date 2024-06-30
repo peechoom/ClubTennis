@@ -72,7 +72,7 @@ func TestEmailServiceSuite(t *testing.T) {
 }
 
 func (suite *EmailServiceTestSuite) TestChallengeEmailHTML() {
-	e1, e2 := suite.s.MakeChallengeEmails(suite.userB, suite.userA)
+	e1, e2 := suite.s.MakeChallengeEmails(suite.userB, suite.userA, "hello world")
 
 	//assert beginning bits are there
 	suite.Require().Contains(string(e2.HTML), "<title>Challenge Email</title>")
@@ -87,10 +87,10 @@ func (suite *EmailServiceTestSuite) TestChallengeEmailHTML() {
 }
 
 func (suite *EmailServiceTestSuite) TestChallengeEmailBody() {
-	e1, e2 := suite.s.MakeChallengeEmails(suite.userB, suite.userA)
+	e1, e2 := suite.s.MakeChallengeEmails(suite.userB, suite.userA, "hello world")
 
-	suite.Require().Equal(e1.To[0], suite.userB.Email)
-	suite.Require().Equal(e2.To[0], suite.userA.Email)
+	suite.Require().Equal(e1.To[0], suite.userB.SigninEmail)
+	suite.Require().Equal(e2.To[0], suite.userA.SigninEmail)
 
 	suite.Require().Equal(e1.From, "NC State Club Tennis <test@test.com>")
 	suite.Require().Equal(e2.From, "NC State Club Tennis <test@test.com>")
@@ -98,7 +98,7 @@ func (suite *EmailServiceTestSuite) TestChallengeEmailBody() {
 	suite.Require().Contains(e1.Cc, "test@test.com")
 	suite.Require().Contains(e2.Cc, "test@test.com")
 
-	suite.Require().Equal(e2.Text, []byte(fmt.Sprintf("You have been challenged by %s %s (%s). Reply to this email to contact them for scheduling.", suite.userB.FirstName, suite.userB.LastName, suite.userB.Email)))
-	suite.Require().Equal(e1.Text, []byte(fmt.Sprintf("You successfully challenged %s %s (%s). You should expect an email from them soon regarding scheduling.", suite.userA.FirstName, suite.userA.LastName, suite.userA.Email)))
+	suite.Require().Equal(e2.Text, []byte(fmt.Sprintf("You have been challenged by %s %s (%s). Reply to this email to contact them for scheduling.", suite.userB.FirstName, suite.userB.LastName, suite.userB.SigninEmail)))
+	suite.Require().Equal(e1.Text, []byte(fmt.Sprintf("You successfully challenged %s %s (%s). You should expect an email from them soon regarding scheduling.", suite.userA.FirstName, suite.userA.LastName, suite.userA.SigninEmail)))
 
 }

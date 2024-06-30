@@ -152,7 +152,7 @@ func (suite *UserControllerTestSuite) TestEditUser() {
 	userE.UnityID = "wewoo1"
 	userE.LastName = "wow"
 	userE.FirstName = ""
-	userE.Email = "newEmail@email.com"
+	userE.SigninEmail = "newEmail@email.com"
 
 	marsh, _ := json.Marshal(userE)
 
@@ -168,7 +168,7 @@ func (suite *UserControllerTestSuite) TestEditUser() {
 	suite.Require().Equal(fetched1, fetched2)
 	suite.Require().Equal("wow", fetched1.LastName)
 	suite.Require().Equal("Lebron", fetched1.FirstName)
-	suite.Require().Equal("newEmail@email.com", fetched1.Email)
+	suite.Require().Equal("newEmail@email.com", fetched1.SigninEmail)
 
 	suite.w = httptest.NewRecorder()
 	route = "/admin/members/123412341234"
