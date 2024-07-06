@@ -6,6 +6,8 @@ BUILD_VERSION=$(git rev-parse HEAD)
 
 echo "$(date --utc +%FT%TZ): Updating to version $BUILD_VERSION"
 
+./scripts/build_base_image.sh golang-alpine-gcc 1.21.10
+
 docker compose rm -f
 docker compose build
 

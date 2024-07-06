@@ -1,0 +1,18 @@
+# Use the official Golang image version 1.21.10 for building the application
+FROM golang:1.21.10-alpine3.18
+# Set environment variables
+ENV GO111MODULE=on \
+    GOOS=linux \
+    GOARCH=amd64
+
+# Create a directory for the application
+WORKDIR /app
+
+# Copy go.mod and go.sum files to the workspace
+COPY go.mod go.sum ./
+
+# Download and cache dependencies
+RUN go mod download
+
+# Download libvps dependancy for webp compression (required by https://github.com/h2non/bimg)
+RUN apk add --no-cache vips vips-dev gcc musl-dev
