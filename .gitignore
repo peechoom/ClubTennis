@@ -22,6 +22,10 @@
 # Test binary, built with `go test -c`
 *.test
 
+# jmeter junk
+/tests/resultsGraph
+*.jlt
+
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
