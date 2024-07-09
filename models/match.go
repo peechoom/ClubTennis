@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"gorm.io/gorm"
@@ -183,6 +184,15 @@ func (match *Match) SubmitScore(challengerScore int, challengedScore int) (err e
 	return nil
 }
 
+func (match *Match) Cancel() {
+	match.IsActive = false
+	match.SubmittedAt = time.Now()
+	match.Score = 0
+	for _, p := range match.Players {
+		removeFromMatches(p, match)
+	}
+}
+
 // encodes a valid score into an unsigned 8 bit number
 func EncodeScore(challengerScore int, challengedScore int) uint8 {
 	return (uint8(challengerScore) << 4) | uint8(challengedScore)
@@ -191,4 +201,11 @@ func EncodeScore(challengerScore int, challengedScore int) uint8 {
 // decodes the score from an unsigned 8 bit number
 func DecodeScore(score uint8) (challengerScore int, challengedScore int) {
 	return int(score >> 4), int(score & 0xF)
+}
+
+func removeFromMatches(user *User, match *Match) {
+	if user == nil || match == nil {
+		return
+	}
+	user.Matches = slices.DeleteFunc(user.Matches, func(m *Match) bool { return m.ID == match.ID })
 }

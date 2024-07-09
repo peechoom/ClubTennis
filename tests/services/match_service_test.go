@@ -133,3 +133,21 @@ func (suite *MatchServiceTestSuite) TestSubmitMatchScore() {
 	suite.Require().Equal(uint(4), userC.Rank)
 	suite.Require().Equal(uint(5), userE.Rank)
 }
+
+func (suite *MatchServiceTestSuite) TestCancellingMatch() {
+	match, _ := suite.userB.Challenge(suite.userA)
+	suite.s.Save(match)
+
+	suite.Assert().False(suite.userA.CanChallenge(suite.userC))
+	suite.Assert().False(suite.userB.CanChallenge(suite.userC))
+
+	suite.Assert().NoError(suite.s.CancelMatch(match.ID))
+
+	a, _ := suite.us.FindByID(suite.userA.ID)
+	b, _ := suite.us.FindByID(suite.userB.ID)
+
+	suite.Assert().True(a.CanChallenge(suite.userC))
+	suite.Assert().True(b.CanChallenge(suite.userC))
+	suite.Assert().True(a.CanChallenge(b))
+	suite.Assert().True(b.CanChallenge(a))
+}

@@ -19,7 +19,7 @@ const ACTIVE_QUERY string = "active"
 const PLAYERS_QUERY string = "player"
 
 // how "recent" a "recent" match is
-const RECENT_TIME_SPAN = 7 * time.Hour * 24
+const RECENT_TIME_SPAN = 14 * time.Hour * 24
 
 type MatchController struct {
 	matchservice *services.MatchService
@@ -254,6 +254,29 @@ func (ctrl *MatchController) notifyPlayers(c *gin.Context, match *models.Match, 
 }
 
 //----------------------------------------------------------------------------------------------------------------
+// DELETE HANDLERS
+
+/*
+DELETE /matches/:id
+
+cancels/deletes the match with the given ID
+*/
+func (ctrl *MatchController) DeleteMatch(c *gin.Context) {
+	id, err := getID(c)
+	if err != nil {
+		c.String(http.StatusBadRequest, "ID is not a uint")
+		return
+	}
+	err = ctrl.matchservice.CancelMatch(id)
+	if err != nil {
+		c.Error(err)
+		c.String(http.StatusNotFound, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "match " + strconv.FormatUint(uint64(id), 10) + " deleted"})
+}
+
+//----------------------------------------------------------------------------------------------------------------
 // PATCH HANDLERS
 
 /*
@@ -277,6 +300,17 @@ func (ctrl *MatchController) SubmitScore(c *gin.Context) {
 	if match == nil {
 		c.Status(http.StatusBadRequest)
 		return
+	}
+
+	principleID := c.GetUint("user_id")
+	//0 means root
+	if principleID != match.ChallengerID && principleID != match.ChallengedID && principleID != 0 {
+		//check if officer
+		u, err := ctrl.userservice.FindByID(principleID)
+		if err != nil || !u.IsOfficer {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "You are not allowed to submit for this match"})
+			return
+		}
 	}
 
 	var m map[string]int

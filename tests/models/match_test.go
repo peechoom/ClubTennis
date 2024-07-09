@@ -245,3 +245,18 @@ func TestSubmitScoreInvalid(t *testing.T) {
 	err = match.SubmitScore(6, 6)
 	require.Error(t, err)
 }
+
+func TestCancelMatch(t *testing.T) {
+	userA, userB := getTestUsersWithRanks(3, 4)
+	match, _ := userA.Challenge(userB)
+
+	match.ID = 5
+
+	match.Cancel()
+
+	require.NotContains(t, userA.Matches, match)
+	require.NotContains(t, userB.Matches, match)
+	b, e := userA.CanChallenge(userB)
+	require.NoError(t, e)
+	require.True(t, b)
+}

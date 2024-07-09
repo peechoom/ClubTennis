@@ -139,6 +139,25 @@ func (ms *MatchService) FindByNearlyExpired() ([]Match, error) {
 	return ms.repo.FindByAgeRange(minTime, maxTime, true)
 }
 
+func (ms *MatchService) CancelMatch(ID uint) (err error) {
+	m, err := ms.FindByID(ID)
+	if err != nil || m == nil {
+		return err
+	}
+	m.Cancel()
+
+	var players []models.User
+	for _, p := range m.Players {
+		players = append(players, *p)
+	}
+
+	_, err = ms.userRepo.SaveUsers(players)
+	if err != nil {
+		return err
+	}
+	return ms.repo.Delete(*m)
+}
+
 // returns all matches that are expired (marked active but too much time has passed)
 func (ms *MatchService) FindByExpired() ([]Match, error) {
 	minTime := time.Hour * 24 * (matchExpiresDays)
@@ -155,5 +174,5 @@ func (ms *MatchService) DeleteOldMatches() error {
 	if err != nil {
 		return err
 	}
-	return ms.repo.Delete(matches)
+	return ms.repo.Delete(matches...)
 }

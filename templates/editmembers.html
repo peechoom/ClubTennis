@@ -75,6 +75,7 @@
 
             // Function to save edited member
             $scope.saveMember = function () {
+
                 $http.put("/admin/members/" + $scope.editingMember.ID, $scope.editingMember).then(function (response) {
                     loadMembers(); // Reload members after saving
                     $scope.editingMember = null;
@@ -266,7 +267,18 @@
             <div class="form-group row">
                 <label class="col-sm-2 col-form-label">Ladder:</label>
                 <div class="col-sm-10">
-                    <input type="text" ng-model="newLadder" class="form-control" placeholder="Ladder">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="ladderOptions" id="ladderM" ng-model="newLadder" value="M">
+                        <label class="form-check-label" for="ladderM">
+                            Mens
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="ladderOptions" id="ladderW" ng-model="newLadder" value="W">
+                        <label class="form-check-label" for="ladderW">
+                            Womens
+                        </label>
+                    </div>
                 </div>
             </div>
             <div class="form-group row">
@@ -285,7 +297,11 @@
         <h4 class="text-center mt-4">Upload/Download User List</h4>
         <!-- Upload/Download User List -->
         <div class="row mb-3">
-            <div class="col-md-6">
+            <div class="col-md-6 border">
+                <p>If you are uploading users for the first time, make sure you follow the format <i>EXACTLY</i>. <strong>The order of columns (including blank ones) matters!</strong></p>
+                <p>You can make a template by adding some dummy users using this sites "Add new member" function and then clicking "download".</p>
+                <p>The field "CanChallenge" is used by the code, just leave it as 'FALSE'.</p>
+
                 <h5>Upload Users (.xlsx)</h5>
                 <form ng-submit="uploadUsers()">
                     <div class="form-group">
@@ -298,12 +314,18 @@
                             <input type="checkbox" ng-model="replaceUsers"> Replace existing users
                         </label>
                     </div>
+                    
                     <button type="submit" class="btn btn-primary">Upload</button>
+                    
                 </form>
             </div>
-            <div class="col-md-6">
+            
+            <div class="col-md-6 border">
                 <h5>Download Users</h5>
-                <button ng-click="downloadUsers()" class="btn btn-secondary">Download</button>
+                <p>This will download all users in the database. It is useful for backups or heavy database modification.</p>
+                <p>If you are editing the database, be sure to select "replace exisiting users".</p>
+                <p>The downloaded file is sorted by last name, you do not need to sort in any particular order when uploading.</p>
+                <button ng-click="downloadUsers()" class="btn btn-success">Download</button>
             </div>
         </div>
         <!-- Members Table -->
@@ -325,7 +347,10 @@
             </thead>
             <tbody>
                 <tr ng-repeat="member in members">
-                    <td>{{ member.Rank }}</td>
+                    <td>
+                        <span ng-show="!editMode || editingMember !== member">{{ member.Rank }}</span>
+                        <input type="number" ng-show="editMode && editingMember === member" ng-model="editingMember.Rank" class="form-control">
+                    </td>
                     <td>
                         <span ng-show="!editMode || editingMember !== member">{{ member.FirstName }}</span>
                         <input type="text" ng-show="editMode && editingMember === member" ng-model="editingMember.FirstName" class="form-control">

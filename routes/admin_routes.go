@@ -18,6 +18,7 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 	var annCtrl *controllers.AnnouncementController = controllers.NewAnnouncementController(s.AnnouncementService, s.EmailService, s.UserService, s.ImageService)
 	var pubCtrl *controllers.PublicController = controllers.NewPublicController(s.PublicService, s.ImageService)
 	var backCtrl *controllers.BackupController = controllers.NewBackupController(s.UserService)
+	var matchCtrl *controllers.MatchController = controllers.NewMatchController(s.MatchService, s.UserService, s.EmailService)
 	{
 		adminGroup.Use(auth.AuthenticateAdmin)
 
@@ -34,9 +35,12 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 		adminGroup.GET("/editpublicpages", controllers.EditPublicPagesHandler)
 		adminGroup.GET("/editpublicpages.html", controllers.EditPublicPagesHandler)
 
+		adminGroup.GET("/editmatches", controllers.EditMatchesHandler)
+		adminGroup.GET("/editmatches.html", controllers.EditMatchesHandler)
+
 		//API handlers
 		//for matches
-		//...
+		adminGroup.DELETE("/matches/:id", matchCtrl.DeleteMatch)
 
 		//for users
 		adminGroup.POST("/members", userCtrl.CreateMember)

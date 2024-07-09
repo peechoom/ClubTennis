@@ -54,6 +54,10 @@ func EditPublicPagesHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "editpublicpages.html", nil)
 }
 
+func EditMatchesHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "editmatches.html", nil)
+}
+
 func ErrorHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "error.html", nil)
 }

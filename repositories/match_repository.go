@@ -52,10 +52,14 @@ func (r *MatchRepository) SubmitMatch(m *Match) error {
 func (r *MatchRepository) SaveMatch(m *Match) error {
 	if m.Score != 0 {
 		ur := NewUserRepository(r.db)
-		if err := ur.SaveUser(m.Challenger()); err != nil {
-			return err
+
+		var players []models.User
+		for _, p := range m.Players {
+			players = append(players, *p)
 		}
-		if err := ur.SaveUser(m.Challenged()); err != nil {
+
+		_, err := ur.SaveUsers(players)
+		if err != nil {
 			return err
 		}
 	}
@@ -143,7 +147,7 @@ func (r *MatchRepository) FindByAgeRange(atLeast, atMost time.Duration, isActive
 
 }
 
-func (r *MatchRepository) Delete(m []models.Match) error {
+func (r *MatchRepository) Delete(m ...models.Match) error {
 	var userMatches []UserMatch
 	var ids []uint
 	for _, mat := range m {
