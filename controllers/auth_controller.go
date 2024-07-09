@@ -61,18 +61,18 @@ func (a *AuthController) Login(c *gin.Context) {
 		c.Redirect(http.StatusTemporaryRedirect, a.googleOauthConfig.AuthCodeURL(a.stateString))
 		return
 	}
-	usr, err := a.userService.FindByID(tokens.UserID)
+	_, err = a.userService.FindByID(tokens.UserID)
 	if err != nil {
 		c.Redirect(http.StatusPermanentRedirect, "/")
 		return
 	}
 	setCookies(c, tokens, int(a.tokenService.IDTokenLifetime), int(a.tokenService.RefreshTokenLifetime), a.host)
 
-	if usr.IsOfficer {
-		c.Redirect(http.StatusPermanentRedirect, "/admin/")
+	if tokens.UserID > 0 {
+		c.Redirect(http.StatusPermanentRedirect, "/club/")
 		return
 	} else {
-		c.Redirect(http.StatusPermanentRedirect, "/club/")
+		c.Redirect(http.StatusPermanentRedirect, "/admin/")
 		return
 	}
 }
