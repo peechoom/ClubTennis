@@ -141,11 +141,12 @@ func (a *AuthController) Callback(c *gin.Context) {
 
 	setCookies(c, tokenPair, int(a.tokenService.IDTokenLifetime), int(a.tokenService.RefreshTokenLifetime), a.host)
 
-	if user.IsOfficer {
-		c.Redirect(http.StatusPermanentRedirect, "/admin/")
+	// redirect root to admin page. micro optimization putting club first
+	if user.ID > 0 {
+		c.Redirect(http.StatusPermanentRedirect, "/club/")
 		return
 	} else {
-		c.Redirect(http.StatusPermanentRedirect, "/club/")
+		c.Redirect(http.StatusPermanentRedirect, "/admin/")
 		return
 	}
 }

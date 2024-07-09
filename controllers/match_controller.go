@@ -242,12 +242,12 @@ func (ctrl *MatchController) notifyPlayers(c *gin.Context, match *models.Match, 
 		c.Error(e)
 		return e
 	}
-	if ctrl.emailservice.Send(challengedEmail) != nil {
-		c.Error(errChallengedNotNotified)
+	if err := ctrl.emailservice.Send(challengedEmail); err != nil {
+		c.Error(err)
 		return errChallengedNotNotified
 	}
-	if ctrl.emailservice.Send(challengerEmail) != nil {
-		c.Error(errChallengerNotNotified)
+	if err := ctrl.emailservice.Send(challengerEmail); err != nil {
+		c.Error(err)
 		return errChallengerNotNotified
 	}
 	return nil
