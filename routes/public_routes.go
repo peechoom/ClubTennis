@@ -33,7 +33,7 @@ func SetPublicRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 		{
 			staticGroup.Use(middleware.GetCors())
 			staticGroup.Static("/", "./static")
-			r.StaticFile("/favicon.ico", "./favicon.ico")
+			r.StaticFile("favicon.ico", "./static/favicon.ico")
 		}
 
 		//for getting images.
