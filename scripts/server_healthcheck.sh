@@ -12,6 +12,11 @@ SERVER_HEALTHY=$(docker container inspect --format '{{ .State.Health.Status }}' 
 MYSQL_HEALTHY=$(docker container inspect --format '{{ .State.Health.Status }}' $MYSQL_CONTAINER)
 CADDY_HEALTHY=$(docker container inspect --format '{{ .State.Health.Status }}' $CADDY_CONTAINER)
 
+if [[ "$SERVER_HEALTHY" == "starting" ||  "$MYSQL_HEALTHY" == "starting" || "$CADDY_HEALTHY" == "starting" ]]; then
+    # server is still starting, come back later!
+    exit 0
+fi
+
 if [[ "$SERVER_HEALTHY" != "healthy" ||  "$MYSQL_HEALTHY" != "healthy" || "$CADDY_HEALTHY" != "healthy" ]]; then
     # try to take the compose down and then up again
     docker compose down
