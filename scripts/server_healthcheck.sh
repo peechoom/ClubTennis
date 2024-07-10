@@ -19,7 +19,7 @@ fi
 
 # try to take the compose down and then up again
 docker compose down
-docker compose up -d --wait server --wait-timeout 30
+docker compose up -d --wait --wait-timeout 30
 
 CONTAINER=$(docker ps -aqf "name=server")
 SERVER_HEALTHY=$(docker container inspect --format '{{ .State.Health.Status }}' $CONTAINER)
