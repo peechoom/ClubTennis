@@ -13,7 +13,7 @@ docker compose build
 
 OLD_CONTAINER=$(docker ps -aqf "name=server")
 echo "$(date --utc +%FT%TZ): Scaling new server up..." 
-docker compose up -d --no-deps --scale server=2 --no-recreate --wait server
+docker compose up -d --no-deps --scale server=2 --no-recreate --wait server > ./server.log 2>&1
 
 NEW_CONTAINER=$(docker ps -aqf "name=server" | grep -v "$OLD_CONTAINER")
 SERVER_HEALTHY=$(docker container inspect --format '{{ .State.Health.Status }}' $NEW_CONTAINER)
@@ -27,7 +27,7 @@ else
     docker container rm -f $NEW_CONTAINER
 fi
 
-docker compose up -d --no-deps --scale server=1 --no-recreate server
+docker compose up -d --no-deps --scale server=1 --no-recreate server > ./server.log 2>&1
 
 echo "$(date --utc +%FT%TZ): Reloading Caddy..."
 CADDY_CONTAINER=$(docker ps -aqf "name=caddy")
