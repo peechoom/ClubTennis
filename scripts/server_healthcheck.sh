@@ -3,31 +3,24 @@
 # get the host from config file (should be ncsutennis.club)
 cd /home/alec/ClubTennis
 
-if [ -f ./config/.env ]; then
-    export $(cat ./config/.env | grep SERVER_HOST | xargs)
+
+SERVER_CONTAINER=$(docker ps -aqf "name=server")
+MYSQL_CONTAINER=$(docker ps -aqf "name=mysql")
+CADDY_CONTAINER=$(docker ps -aqf "name=caddy")
+
+SERVER_HEALTHY=$(docker container inspect --format '{{ .State.Health.Status }}' $SERVER_CONTAINER)
+MYSQL_HEALTHY=$(docker container inspect --format '{{ .State.Health.Status }}' $MYSQL_CONTAINER)
+CADDY_HEALTHY=$(docker container inspect --format '{{ .State.Health.Status }}' $CADDY_CONTAINER)
+
+if [[ "$SERVER_HEALTHY" != "healthy" ||  "$MYSQL_HEALTHY" != "healthy" || "$CADDY_HEALTHY" != "healthy" ]]; then
+    # try to take the compose down and then up again
+    docker compose down
+    docker compose up -d --wait --wait-timeout 30
 else
-    echo "SERVER_HOST not defined in config/.env"
-    exit 1
-fi 
-
-# $SERVER_HOST is ur host
-URL="https://$SERVER_HOST/ping"
-echo pinging $URL
-if ! curl -f --silent -I --max-time 5 --connect-timeout 60 "URL" > /dev/null; then
-    echo "curl exited with code $?"
     exit 0
-fi 
+fi
 
-echo "curl exited with code $?"
-
-# try to take the compose down and then up again
-docker compose down
-docker compose up -d --wait --wait-timeout 30
-
-CONTAINER=$(docker ps -aqf "name=server")
-SERVER_HEALTHY=$(docker container inspect --format '{{ .State.Health.Status }}' $CONTAINER)
-
-if [[ "$SERVER_HEALTHY" != "healthy" ]]; then
+if [[ "$SERVER_HEALTHY" != "healthy" ||  "$MYSQL_HEALTHY" != "healthy" || "$CADDY_HEALTHY" != "healthy" ]]; then
     # shits hit the fan at this point. Reboot system
     echo "$(date --utc +%FT%TZ): Rebooted server"
     sudo /sbin/reboot
