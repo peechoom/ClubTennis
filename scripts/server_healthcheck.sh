@@ -12,16 +12,14 @@ fi
 
 # $SERVER_HOST is ur host
 URL="https://$SERVER_HOST/ping"
+echo pinging $URL
 if curl -f --silent -I --max-time 5 --connect-timeout 60 "URL" > /dev/null; then
     exit 0
 fi 
 
 # try to take the compose down and then up again
 docker compose down
-docker compose up -d
-
-# give the server a minute to start
-sleep 60
+docker compose up -d --wait server --wait-timeout 30
 
 CONTAINER=$(docker ps -aqf "name=server")
 SERVER_HEALTHY=$(docker container inspect --format '{{ .State.Health.Status }}' $CONTAINER)
