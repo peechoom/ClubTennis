@@ -12,8 +12,8 @@ docker compose rm -f
 docker compose build
 
 OLD_CONTAINER=$(docker ps -aqf "name=server")
-echo "$(date --utc +%FT%TZ): Scaling new server up..."
-BUILD_VERSION=$BUILD_VERSION docker compose up -d --no-deps --scale server=2 --no-recreate --wait server
+echo "$(date --utc +%FT%TZ): Scaling new server up..." 
+docker compose up -d --no-deps --scale server=2 --no-recreate --wait server
 
 NEW_CONTAINER=$(docker ps -aqf "name=server" | grep -v "$OLD_CONTAINER")
 SERVER_HEALTHY=$(docker container inspect --format '{{ .State.Health.Status }}' $NEW_CONTAINER)

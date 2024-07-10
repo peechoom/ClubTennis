@@ -7,6 +7,8 @@ fi
 
 cd /home/alec/ClubTennis
 
+
+# just realized this is a typo, but more than just this script uses it so oh well
 LOCK_FILE="$(pwd)/deyployment.lock"
 
 TTL=$( { time flock -n $LOCK_FILE ./scripts/rebuild_if_changed.sh >> ./deployment.log 2>&1; } 2>&1 )
