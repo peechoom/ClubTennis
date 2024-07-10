@@ -14,8 +14,11 @@ fi
 URL="https://$SERVER_HOST/ping"
 echo pinging $URL
 if curl -f --silent -I --max-time 5 --connect-timeout 60 "URL" > /dev/null; then
+    echo "curl exited with code $?"
     exit 0
 fi 
+
+echo "curl exited with code $?"
 
 # try to take the compose down and then up again
 docker compose down
