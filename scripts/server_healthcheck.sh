@@ -13,7 +13,7 @@ fi
 # $SERVER_HOST is ur host
 URL="https://$SERVER_HOST/ping"
 echo pinging $URL
-if curl -f --silent -I --max-time 5 --connect-timeout 60 "URL" > /dev/null; then
+if ! curl -f --silent -I --max-time 5 --connect-timeout 60 "URL" > /dev/null; then
     echo "curl exited with code $?"
     exit 0
 fi 
