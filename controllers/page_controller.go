@@ -58,6 +58,10 @@ func EditMatchesHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "editmatches.html", nil)
 }
 
+func LadderRulesHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "ladderrules.html", nil)
+}
+
 func ErrorHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "error.html", nil)
 }

@@ -259,7 +259,11 @@
     <!-- Site Body -->
     <div class="container-fluid mt-5">
         <div class="d-flex justify-content-between align-items-end" style="margin-top: 0;">
-            <h1 id="headerparent">Welcome, {{me.FirstName}}!</h1>
+            <div class="d-flex flex-row align-items-end">
+                <h1 id="headerparent">Welcome, {{me.FirstName}}!</h1>
+                <a class="mx-3 my-1" href="/club/challengerules" style="color:black"><h5>Ladder Rules</h5></a>
+            </div>
+
             <img id="headerchild" src="/static/strutting-tuffy.webp" class="header-img">
         </div>
         <!-- ladder containers -->

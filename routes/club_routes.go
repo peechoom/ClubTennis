@@ -32,6 +32,9 @@ func SetClubRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 		clubGroup.GET("/challengerules", controllers.ChallengeRulesHandler)
 		clubGroup.GET("/challengerules.html", controllers.ChallengeRulesHandler)
 
+		clubGroup.GET("/ladderrules", controllers.LadderRulesHandler)
+		clubGroup.GET("/ladderrules.html", controllers.LadderRulesHandler)
+
 		// API handlers
 		// for matches
 		clubGroup.POST("/matches", matchCtrl.Challenge)
