@@ -88,8 +88,7 @@ func (ctrl *BackupController) LoadBackupSpreadsheet(c *gin.Context) {
 			ctrl.userService.DeleteByID(u.ID)
 		}
 	}
-	for i := range docUsers {
-		ctrl.userService.Save(&docUsers[i])
-	}
+	ctrl.userService.SaveStruct(docUsers...)
+
 	c.JSON(http.StatusOK, gin.H{"message": "Users successfully updated"})
 }

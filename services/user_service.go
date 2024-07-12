@@ -43,6 +43,12 @@ func (s *UserService) Save(u ...*User) error {
 	}
 	return s.saveMany(u)
 }
+func (s *UserService) SaveStruct(users ...User) error {
+	_, err := s.repo.SaveUsers(users)
+	s.repo.FixLadder()
+	return err
+}
+
 func (s *UserService) saveMany(users []*User) error {
 	var arr []models.User
 	for _, u := range users {
