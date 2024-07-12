@@ -16,15 +16,38 @@ type ServiceContainer struct {
 	PublicService       *PublicService
 	EmailService        *EmailService
 	ImageService        *ImageService
+	SnippetService      *SnippetService
 }
 
 func SetupServices(db *gorm.DB, emailTemplatesDir string) *ServiceContainer {
 	tokenService := DefaultTokenService(repositories.NewTokenRepository())
+	if tokenService == nil {
+		panic("could not create token service")
+	}
 	userService := NewUserService(db)
+	if userService == nil {
+		panic("could not create user service")
+	}
 	matchService := NewMatchService(db)
+	if matchService == nil {
+		panic("could not create match service")
+	}
 	announcementService := NewAnnouncementService(db)
+	if announcementService == nil {
+		panic("could not create announcement service")
+	}
 	publicService := NewPublicService(db)
-	ImageService := NewImageService(db)
+	if publicService == nil {
+		panic("could not create public service")
+	}
+	imageService := NewImageService(db)
+	if imageService == nil {
+		panic("could not create image service")
+	}
+	snippetService := NewSnippetService(db)
+	if snippetService == nil {
+		panic("could not create snippet service")
+	}
 
 	uname := os.Getenv("EMAIL_USERNAME")
 	pw := os.Getenv("EMAIL_PASSWORD")
@@ -40,6 +63,7 @@ func SetupServices(db *gorm.DB, emailTemplatesDir string) *ServiceContainer {
 		AnnouncementService: announcementService,
 		PublicService:       publicService,
 		EmailService:        emailService,
-		ImageService:        ImageService,
+		ImageService:        imageService,
+		SnippetService:      snippetService,
 	}
 }

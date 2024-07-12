@@ -63,6 +63,8 @@
             $scope.members = [];
             $scope.matches = [];
             $scope.challengeResponse = ""
+            $scope.mensCutoff = 0
+            $scope.womensCutoff = 0
 
 
             function getPrincipal() {
@@ -92,6 +94,19 @@
                     $scope.matches.sort = $scope.matches.sort((a, b) => new Date(b.SubmittedAt) - new Date(a.SubmittedAt))
                 });
             }
+            getCutoff = function(ladder) {
+                $http.get("/club/cutoff/" + ladder).then(function(success){
+                    if( ladder === 'w' ){
+                        $scope.womensCutoff = parseInt(success.data);
+                    }
+                    if( ladder === 'm' ){
+                        $scope.mensCutoff = parseInt(success.data);
+                    }
+                }, function(failure) {
+                    alert(success.data);
+                })
+            }
+
             function decodeScore(score) {
                 const challengerScore = score >> 4;
                 const challengedScore = score & 0xF;
@@ -123,6 +138,8 @@
                     .then(mapMatches);
             }
             loadEverything();
+            getCutoff('m')
+            getCutoff('w')
 
 
             $scope.showChallengePopup = function (member) {
@@ -261,7 +278,7 @@
         <div class="d-flex justify-content-between align-items-end" style="margin-top: 0;">
             <div class="d-flex flex-row align-items-end">
                 <h1 id="headerparent">Welcome, {{me.FirstName}}!</h1>
-                <a class="mx-3 my-1" href="/club/challengerules" style="color:black"><h5>Ladder Rules</h5></a>
+                <a class="mx-3 my-1" href="/club/ladderrules" style="color:black"><h5>Ladder Rules</h5></a>
             </div>
 
             <img id="headerchild" src="/static/strutting-tuffy.webp" class="header-img">
@@ -282,7 +299,7 @@
                         </thead>
                         <tbody>
                             <tr ng-repeat="member in members" ng-if="member.Ladder === 'M'">
-                                <th scope="row">{{member.Rank}}</th>
+                                <th scope="row">{{member.Rank}} <span ng-if="member.Rank <= mensCutoff">🟥</span><span ng-if="member.Rank > mensCutoff">⬜️</span></th>
                                 <td>{{member.FirstName}} {{member.LastName}} <span ng-if="member.IsOfficer">🌟</span></td>
                                 <td class="d-none d-md-table-cell">{{member.Wins}} - {{member.Losses}}</td>
                             </tr>
@@ -303,7 +320,7 @@
                         </thead>
                         <tbody>
                             <tr ng-repeat="member in members" ng-if="member.Ladder === 'W'">
-                                <th scope="row">{{member.Rank}}</th>
+                                <th scope="row">{{member.Rank}} <span ng-if="member.Rank <= womensCutoff">🟥</span><span ng-if="member.Rank > womensCutoff">⬜️</span></th>
                                 <td>{{member.FirstName}} {{member.LastName}} <span ng-if="member.IsOfficer">🌟</span></td>
                                 <td class="d-none d-md-table-cell">{{member.Wins}} - {{member.Losses}}</td>
                             </tr>

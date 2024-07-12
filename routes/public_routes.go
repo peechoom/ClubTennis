@@ -11,7 +11,7 @@ import (
 // sets up the routings for endpoints that anyone can access
 func SetPublicRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 	r := engine
-	pubCtrl := controllers.NewPublicController(s.PublicService, s.ImageService)
+	pubCtrl := controllers.NewPublicController(s.PublicService, s.ImageService, s.SnippetService)
 	{
 
 		r.GET("/", controllers.HomeHandler)

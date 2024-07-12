@@ -10,24 +10,35 @@ type SnippetRepository struct {
 	db *gorm.DB
 }
 
-const homepage_category string = "homepage"
-
 func NewSnippetRepository(db *gorm.DB) *SnippetRepository {
 	return &SnippetRepository{db: db}
 }
 
-func (r *SnippetRepository) GetCustomHomePage() *models.Snippet {
+func (r *SnippetRepository) FindByCategory(category string) *models.Snippet {
+	if category == "" {
+		return nil
+	}
+
 	var s models.Snippet
-	if r.db.Where(&models.Snippet{Category: homepage_category}).First(&s).Error != nil {
+	if r.db.Where(&models.Snippet{Category: category}).First(&s).Error != nil {
 		return nil
 	}
 	return &s
 }
 
-func (r *SnippetRepository) SetCustomHomePage(snippet *models.Snippet) error {
-	var s = r.GetCustomHomePage()
-	if s == nil {
-		snippet.Category = homepage_category
+func (r *SnippetRepository) FindAll() []models.Snippet {
+	var s []models.Snippet
+	if r.db.Find(&s).Error != nil {
+		return nil
+	}
+	return s
+}
+
+func (r *SnippetRepository) Save(category string, snippet *models.Snippet) error {
+	var s models.Snippet
+	err := r.db.Where(&models.Snippet{Category: category}).First(&s).Error
+	if err != nil {
+		snippet.Category = category
 		return r.db.Save(snippet).Error
 	}
 	s.Data = snippet.Data

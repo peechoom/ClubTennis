@@ -121,6 +121,29 @@ func (ctrl *UserController) GetMemberByID(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+/*
+	GET ../cutoff/:ladder
+
+returns the cutoff for the mens or womens red team. either m or w
+*/
+func (ctrl *UserController) GetCutoff(c *gin.Context) {
+	ladder := c.Param("ladder")
+	var num int
+	if ladder == "m" {
+		num = ctrl.userservice.GetLadderCutoff(models.MENS_LADDER)
+	} else if ladder == "w" {
+		num = ctrl.userservice.GetLadderCutoff(models.WOMENS_LADDER)
+	} else {
+		c.String(http.StatusBadRequest, "not a valid ladder")
+		return
+	}
+	if num == -1 {
+		c.String(http.StatusInternalServerError, "error fetching num")
+		return
+	}
+	c.String(http.StatusOK, strconv.FormatInt(int64(num), 10))
+}
+
 //---------------------------------------------------------------------------------------------------------------
 // POST handlers
 /*
@@ -145,6 +168,38 @@ func (ctrl *UserController) CreateMember(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, user)
+}
+
+/*
+POST ../cutoff/:ladder
+
+sets the cutoff ofthe ladder, either m or w. expects JSON field with "cutoff": num
+*/
+func (ctrl *UserController) SetCutoff(c *gin.Context) {
+	ladder := c.Param("ladder")
+	var payload map[string]interface{}
+	c.BindJSON(&payload)
+	val, ok := payload["cutoff"]
+	if !ok {
+		c.String(http.StatusBadRequest, "cutoff field not present")
+		return
+	}
+	num := int(val.(float64))
+	if ladder == "m" {
+		if err := ctrl.userservice.SetLadderCutoff(models.MENS_LADDER, num); err != nil {
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+	} else if ladder == "w" {
+		if err := ctrl.userservice.SetLadderCutoff(models.MENS_LADDER, num); err != nil {
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+	} else {
+		c.String(http.StatusBadRequest, "not a valid ladder")
+		return
+	}
+	c.String(http.StatusOK, "cutoff set")
 }
 
 //---------------------------------------------------------------------------------------------------------------

@@ -92,7 +92,7 @@ func (a *AnnouncementController) SubmitPost(c *gin.Context) {
 	}
 
 	//strip image base64's from announcement and replace them with links that trigger GET's from image repo
-	images, err := ann.StripImages(a.serverHost + "/images")
+	images, err := models.StripImages(&ann.Data, a.serverHost+"/images")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "could not parse html doc"})
 		return
@@ -177,7 +177,6 @@ func (a *AnnouncementController) DeleteAnnouncement(c *gin.Context) {
 func (a *AnnouncementController) deleteImages(body string) {
 	//thanks chatgpt
 	re := regexp.MustCompile(`<img[^>]*\bsrc=["'][^>]*([a-fA-F0-9]{32}\.\w{1,5})["'][^>]*>`)
-	print("uhhhh hello?")
 	matches := re.FindAllStringSubmatch(body, -1)
 	for _, match := range matches {
 		println("deleting " + match[1])

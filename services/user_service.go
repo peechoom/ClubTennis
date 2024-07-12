@@ -4,18 +4,28 @@ import (
 	"ClubTennis/models"
 	"ClubTennis/repositories"
 	"errors"
+	"os"
 	"sort"
+	"strconv"
 
 	"gorm.io/gorm"
 )
 
+// the defaut cutoff for red/white team. the lowest possible rank to still be in red
+const DEFAULT_CUTOFF_MENS int = 40
+const DEFAULT_CUTOFF_WOMENS int = 20
+const CUTOFF_FILENAME_MENS string = "mens_cutoff.txt"
+const CUTOFF_FILENAME_WOMENS string = "womens_cutoff.txt"
+
 type UserService struct {
-	repo *repositories.UserRepository
+	repo         *repositories.UserRepository
+	mensCutoff   int
+	womensCutoff int
 }
 type User = models.User
 
 func NewUserService(db *gorm.DB) *UserService {
-	return &UserService{repo: repositories.NewUserRepository(db)}
+	return &UserService{repo: repositories.NewUserRepository(db), mensCutoff: 0, womensCutoff: 0}
 }
 
 // saves user(s) to the database
@@ -103,6 +113,117 @@ func (s *UserService) DeleteByUnityID(unityID string) error {
 
 func (s *UserService) FindOfficers() ([]models.User, error) {
 	return s.repo.FindAdmins()
+}
+
+// get the cutoff for red/white team. This is the lowest ranked that someone can have and still be in red
+func (s *UserService) GetLadderCutoff(ladder string) int {
+	readCutoffFile := func(filename string) int {
+		val, err := os.ReadFile(filename)
+		if err != nil {
+			print(err.Error())
+			return -1
+		}
+		ret, err := strconv.ParseInt(string(val), 10, 0)
+		if err != nil {
+			print(err.Error())
+			return -1
+		}
+		return int(ret)
+	}
+
+	dir := os.Getenv("SERVER_FILES_MOUNTPOINT")
+	if dir == "" {
+		print("dir dne")
+		return -1
+	}
+
+	if ladder == models.MENS_LADDER {
+		if s.mensCutoff != 0 {
+			return s.mensCutoff
+		}
+
+		filename := dir + "/" + CUTOFF_FILENAME_MENS
+		if _, e := os.Stat(filename); errors.Is(e, os.ErrNotExist) {
+			if e = makeCutoffFile(filename, DEFAULT_CUTOFF_MENS); e != nil {
+				print(e.Error())
+				return -1
+			}
+		}
+		s.mensCutoff = readCutoffFile(filename)
+		return s.mensCutoff
+
+	} else if ladder == models.WOMENS_LADDER {
+		if s.womensCutoff != 0 {
+			return s.womensCutoff
+		}
+
+		filename := dir + "/" + CUTOFF_FILENAME_WOMENS
+		if _, e := os.Stat(filename); errors.Is(e, os.ErrNotExist) {
+			if e = makeCutoffFile(filename, DEFAULT_CUTOFF_WOMENS); e != nil {
+				print(e.Error())
+				return -1
+			}
+		}
+		s.womensCutoff = readCutoffFile(filename)
+		return s.womensCutoff
+	}
+	return -1
+}
+
+// set the cutoff for red/white team. This is the lowest ranked that someone can have and still be in red
+func (s *UserService) SetLadderCutoff(ladder string, rank int) error {
+	dir := os.Getenv("SERVER_FILES_MOUNTPOINT")
+	if dir == "" {
+		return errors.New("dir string empty")
+	}
+	if rank < 0 {
+		return errors.New("cutoff cannot be less than 0")
+	}
+
+	if ladder == models.MENS_LADDER {
+		filename := dir + "/" + CUTOFF_FILENAME_MENS
+		if _, e := os.Stat(filename); e == os.ErrNotExist {
+			e = makeCutoffFile(filename, rank)
+			if e != nil {
+				return e
+			}
+			s.mensCutoff = rank
+			return nil
+		}
+		if e := os.Remove(filename); e != nil {
+			return e
+		}
+		if e := makeCutoffFile(filename, rank); e != nil {
+			return e
+		}
+		s.mensCutoff = rank
+		return nil
+
+	} else if ladder == models.WOMENS_LADDER {
+		filename := dir + "/" + CUTOFF_FILENAME_WOMENS
+		if _, e := os.Stat(filename); e == os.ErrNotExist {
+			e = makeCutoffFile(filename, rank)
+			if e != nil {
+				return e
+			}
+			s.womensCutoff = rank
+			return nil
+		}
+		if e := os.Remove(filename); e != nil {
+			return e
+		}
+		if e := makeCutoffFile(filename, rank); e != nil {
+			return e
+		}
+		s.womensCutoff = rank
+		return nil
+	}
+	return errors.New("invalid ladder name")
+}
+
+func makeCutoffFile(filename string, cutoff int) error {
+	val := []byte(strconv.FormatInt(int64(cutoff), 10))
+	return os.WriteFile(filename, val, 0777)
 }
 
 // algorithm for adjusting the ladder.

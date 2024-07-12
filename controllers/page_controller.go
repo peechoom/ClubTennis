@@ -1,10 +1,21 @@
 package controllers
 
 import (
+	"ClubTennis/services"
+	"html/template"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
+
+// only needed for pages that do htmx
+type PageController struct {
+	snippetservice *services.SnippetService
+}
+
+func NewPageController(snippetservice *services.SnippetService) *PageController {
+	return &PageController{snippetservice: snippetservice}
+}
 
 // returns the home page
 func HomeHandler(c *gin.Context) {
@@ -42,10 +53,6 @@ func EditMembersHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "editmembers.html", nil)
 }
 
-func ChallengeRulesHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "challengerules.html", nil)
-}
-
 func SendAnnouncementsHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "sendannouncements.html", nil)
 }
@@ -58,8 +65,20 @@ func EditMatchesHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "editmatches.html", nil)
 }
 
-func LadderRulesHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "ladderrules.html", nil)
+func EditRulesHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "editrules.html", nil)
+}
+
+func (ctrl *PageController) LadderRulesHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "rules_template.html", gin.H{
+		"snippet": template.HTML(ctrl.snippetservice.Get(services.LADDER_CATEGORY).Data),
+	})
+}
+
+func (ctrl *PageController) ChallengeRulesHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "rules_template.html", gin.H{
+		"snippet": template.HTML(ctrl.snippetservice.Get(services.CHALLENGE_CATEGORY).Data),
+	})
 }
 
 func ErrorHandler(c *gin.Context) {

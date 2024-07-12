@@ -16,9 +16,10 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 	var userCtrl *controllers.UserController = controllers.NewUserController(s.UserService, s.MatchService)
 	var auth middleware.Authenticator = *middleware.NewAuthenticator(s.TokenService, s.UserService, os.Getenv("SERVER_HOST"))
 	var annCtrl *controllers.AnnouncementController = controllers.NewAnnouncementController(s.AnnouncementService, s.EmailService, s.UserService, s.ImageService)
-	var pubCtrl *controllers.PublicController = controllers.NewPublicController(s.PublicService, s.ImageService)
+	var pubCtrl *controllers.PublicController = controllers.NewPublicController(s.PublicService, s.ImageService, s.SnippetService)
 	var backCtrl *controllers.BackupController = controllers.NewBackupController(s.UserService)
 	var matchCtrl *controllers.MatchController = controllers.NewMatchController(s.MatchService, s.UserService, s.EmailService)
+	var rulesCtrl *controllers.RulesController = controllers.NewRulesController(s.ImageService, s.SnippetService, os.Getenv("SERVER_HOST"))
 	{
 		adminGroup.Use(auth.AuthenticateAdmin)
 
@@ -38,6 +39,9 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 		adminGroup.GET("/editmatches", controllers.EditMatchesHandler)
 		adminGroup.GET("/editmatches.html", controllers.EditMatchesHandler)
 
+		adminGroup.GET("/editrules", controllers.EditRulesHandler)
+		adminGroup.GET("/editrules.html", controllers.EditRulesHandler)
+
 		//API handlers
 		//for matches
 		adminGroup.DELETE("/matches/:id", matchCtrl.DeleteMatch)
@@ -46,6 +50,7 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 		adminGroup.POST("/members", userCtrl.CreateMember)
 		adminGroup.PUT("/members/:id", userCtrl.EditMember)
 		adminGroup.DELETE("/members/:id", userCtrl.DeleteMember)
+		adminGroup.POST("/cutoff/:ladder", userCtrl.SetCutoff)
 		backupGroup := adminGroup.Group("/backups")
 		{
 			backupGroup.GET("/users", backCtrl.GetBackupSpreadsheet)
@@ -59,5 +64,10 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 		//for public facing things
 		adminGroup.POST("/slides/:slideNum", pubCtrl.PostSlides)
 		adminGroup.PUT("/welcome", pubCtrl.PutWelcome)
+
+		//for snippets
+		adminGroup.PUT("/challengerulessnippet", rulesCtrl.PutChallengeRules)
+		adminGroup.PUT("/ladderrulessnippet", rulesCtrl.PutLadderRules)
+
 	}
 }

@@ -14,15 +14,16 @@ import (
 )
 
 type PublicController struct {
-	publicService *services.PublicService
-	imageService  *services.ImageService
+	publicService  *services.PublicService
+	imageService   *services.ImageService
+	snippetService *services.SnippetService
 }
 
-func NewPublicController(publicService *services.PublicService, imageservice *services.ImageService) *PublicController {
+func NewPublicController(publicService *services.PublicService, imageservice *services.ImageService, snippetservice *services.SnippetService) *PublicController {
 	if publicService == nil {
 		return nil
 	}
-	return &PublicController{publicService: publicService, imageService: imageservice}
+	return &PublicController{publicService: publicService, imageService: imageservice, snippetService: snippetservice}
 }
 
 // --------------------------------------------------------------------------------------
@@ -34,8 +35,8 @@ func NewPublicController(publicService *services.PublicService, imageservice *se
 gets the custom welcome snippet for the homepage.
 */
 func (p *PublicController) GetWelcome(c *gin.Context) {
-	s, err := p.publicService.GetCustomHomePage()
-	if err != nil {
+	s := p.snippetService.Get(services.HOMEPAGE_CATEGORY)
+	if s == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not load custom welcome page"})
 		return
 	}
@@ -123,7 +124,6 @@ func (p *PublicController) PostSlides(c *gin.Context) {
 		out, _ = os.Create(to)
 		defer out.Close()
 		_, err = io.Copy(out, in)
-		return
 	}("static/slide"+slideStr+".webp", os.Getenv("SERVER_FILES_MOUNTPOINT")+"/slide"+slideStr+".webp")
 }
 
@@ -146,7 +146,7 @@ func (p *PublicController) PutWelcome(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "illegal fields in html"})
 		return
 	}
-	err := p.publicService.SetCustomHomePage(snippet)
+	err := p.snippetService.Set(services.HOMEPAGE_CATEGORY, snippet)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save page"})
 		return

@@ -10,12 +10,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const DELIM_LEFT string = "{[{"
+const DELIM_RIGHT string = "}]}"
+
 func GetEngine() *gin.Engine {
 	e := gin.New()
 	e.Use(gin.Recovery())
 	//e.Use(gin.Logger())
 
-	e = e.Delims("{[{", "}]}")
+	e = e.Delims(DELIM_LEFT, DELIM_RIGHT)
 	e.LoadHTMLGlob("templates/*.html")
 
 	s := services.SetupServices(GetDatabase(), "templates")

@@ -1,7 +1,6 @@
 package services
 
 import (
-	"ClubTennis/models"
 	"ClubTennis/repositories"
 	"errors"
 	"io"
@@ -27,18 +26,7 @@ func NewPublicService(db *gorm.DB) *PublicService {
 	if (&s).ensureSlideCount() != nil {
 		return nil
 	}
-	if (&s).ensureHomepage() != nil {
-		return nil
-	}
 	return &s
-}
-
-func (s *PublicService) ensureHomepage() error {
-	_, e := s.GetCustomHomePage()
-	if e == nil {
-		return nil
-	}
-	return s.SetCustomHomePage(models.NewSnippet("", "<h2>NC State Club Tennis</h2><p>Custom homepage has not been set up yet!</p>"))
 }
 
 // ensures there are 5 slides. fills in missing slides with nc state wallpaper
@@ -96,16 +84,4 @@ func ConvertToWebp(filename, outputName string) error {
 
 	bimg.Write(outputName, newData)
 	return nil
-}
-
-func (s *PublicService) SetCustomHomePage(snippet *models.Snippet) error {
-	return s.snippetRepo.SetCustomHomePage(snippet)
-}
-
-func (s *PublicService) GetCustomHomePage() (*models.Snippet, error) {
-	snip := s.snippetRepo.GetCustomHomePage()
-	if snip == nil {
-		return nil, errors.New("homepage not yet set")
-	}
-	return snip, nil
 }
