@@ -161,7 +161,9 @@ func (a *AuthController) Me(c *gin.Context) {
 	}
 	uid, err := a.tokenService.ValidateIDToken(ss)
 	if err != nil || uid == 0 {
-		log.Print(err.Error())
+		if err != nil {
+			log.Print(err.Error())
+		}
 		c.JSON(http.StatusNotFound, gin.H{"error": "id token not valid"})
 		return
 	}

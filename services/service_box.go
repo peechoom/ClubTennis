@@ -17,6 +17,7 @@ type ServiceContainer struct {
 	EmailService        *EmailService
 	ImageService        *ImageService
 	SnippetService      *SnippetService
+	ResetService        *ResetService
 }
 
 func SetupServices(db *gorm.DB, emailTemplatesDir string) *ServiceContainer {
@@ -48,6 +49,10 @@ func SetupServices(db *gorm.DB, emailTemplatesDir string) *ServiceContainer {
 	if snippetService == nil {
 		panic("could not create snippet service")
 	}
+	resetService := NewResetService(db)
+	if resetService == nil {
+		panic("could not create reset service")
+	}
 
 	uname := os.Getenv("EMAIL_USERNAME")
 	pw := os.Getenv("EMAIL_PASSWORD")
@@ -65,5 +70,6 @@ func SetupServices(db *gorm.DB, emailTemplatesDir string) *ServiceContainer {
 		EmailService:        emailService,
 		ImageService:        imageService,
 		SnippetService:      snippetService,
+		ResetService:        resetService,
 	}
 }

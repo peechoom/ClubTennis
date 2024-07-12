@@ -11,12 +11,14 @@ import (
 )
 
 type BackupController struct {
-	userService *services.UserService
+	userService  *services.UserService
+	resetService *services.ResetService
 }
 
-func NewBackupController(userservice *services.UserService) *BackupController {
+func NewBackupController(userservice *services.UserService, resetService *services.ResetService) *BackupController {
 	return &BackupController{
-		userService: userservice,
+		userService:  userservice,
+		resetService: resetService,
 	}
 }
 
@@ -91,4 +93,20 @@ func (ctrl *BackupController) LoadBackupSpreadsheet(c *gin.Context) {
 	ctrl.userService.SaveStruct(docUsers...)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Users successfully updated"})
+}
+
+//-------------------------------------------------------------
+// DELETE handlers
+/*
+	DELETE .../admin/
+
+	deletes EVERYTHING from the database and restarts the server. Can only be executed by the root user. dangerous
+*/
+func (ctrl *BackupController) WipeServer(c *gin.Context) {
+	id := c.GetUint("user_id")
+	if id != 0 {
+		c.String(http.StatusUnauthorized, "only the clubtennis email account user may do this")
+		return
+	}
+	ctrl.resetService.DeleteEverything()
 }

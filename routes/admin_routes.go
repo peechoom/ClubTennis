@@ -17,7 +17,7 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 	var auth middleware.Authenticator = *middleware.NewAuthenticator(s.TokenService, s.UserService, os.Getenv("SERVER_HOST"))
 	var annCtrl *controllers.AnnouncementController = controllers.NewAnnouncementController(s.AnnouncementService, s.EmailService, s.UserService, s.ImageService)
 	var pubCtrl *controllers.PublicController = controllers.NewPublicController(s.PublicService, s.ImageService, s.SnippetService)
-	var backCtrl *controllers.BackupController = controllers.NewBackupController(s.UserService)
+	var backCtrl *controllers.BackupController = controllers.NewBackupController(s.UserService, s.ResetService)
 	var matchCtrl *controllers.MatchController = controllers.NewMatchController(s.MatchService, s.UserService, s.EmailService)
 	var rulesCtrl *controllers.RulesController = controllers.NewRulesController(s.ImageService, s.SnippetService, os.Getenv("SERVER_HOST"))
 	{
@@ -42,6 +42,8 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 		adminGroup.GET("/editrules", controllers.EditRulesHandler)
 		adminGroup.GET("/editrules.html", controllers.EditRulesHandler)
 
+		adminGroup.GET("/wipeserver", controllers.WipeServerHandler)
+
 		//API handlers
 		//for matches
 		adminGroup.DELETE("/matches/:id", matchCtrl.DeleteMatch)
@@ -51,7 +53,9 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 		adminGroup.PUT("/members/:id", userCtrl.EditMember)
 		adminGroup.DELETE("/members/:id", userCtrl.DeleteMember)
 		adminGroup.POST("/cutoff/:ladder", userCtrl.SetCutoff)
+
 		backupGroup := adminGroup.Group("/backups")
+		adminGroup.DELETE("/", backCtrl.WipeServer)
 		{
 			backupGroup.GET("/users", backCtrl.GetBackupSpreadsheet)
 			backupGroup.POST("/users", backCtrl.LoadBackupSpreadsheet)
