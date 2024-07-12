@@ -127,6 +127,47 @@ h1, h2, h3, h4, h5, h6 {
         border-color: transparent; /* Transparent border */
     }
 }
+
+.btn-outline-primary {
+    color: #CC0000; /* Text color */
+    border-color: #CC0000; /* Border color */
+    padding: 0.5rem 1rem; /* Padding */
+    font-size: 1rem; /* Font size */
+    line-height: 1.5; /* Line height */
+    border-radius: 0.25rem; /* Border radius */
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; /* Transition for smooth animation */
+
+    /* Hover state */
+    &:hover {
+        color: #fff; /* Text color */
+        background-color: #AA0000; /* Background color */
+        border-color: #AA0000; /* Border color */
+        text-decoration: none; /* Remove underline on hover */
+    }
+
+    /* Focus state */
+    &:focus {
+        outline: 0; /* Remove default focus outline */
+        box-shadow: 0 0 0 0.2rem rgba(204, 0, 0, 0.5); /* Custom focus shadow */
+        background-color: #990000; /* Darker shade of primary color */
+    }
+
+    /* Active state */
+    &:active {
+        background-color: #990000 !important; /* Background color */
+        color: #ffffff; /* Text color */
+        border-color: #990000; /* Border color */
+    }
+
+    /* Checked state (for btn-check) */
+    .btn-check:checked + & {
+        color: #fff; /* Text color */
+        background-color: #CC0000; /* Background color */
+        border-color: #CC0000; /* Border color */
+    }
+}
+
+
 /* Customized .btn-secondary */
 .btn-secondary {
     background-color: #6c757d; /* Gray color */
