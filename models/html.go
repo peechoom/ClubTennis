@@ -30,7 +30,6 @@ func IsCleanHTML(data string) bool {
 		"onkeyup",
 		"onmousedown",
 		"onmouseup",
-		"style",
 		"<iframe>",
 		"<object>",
 		"<embed>",

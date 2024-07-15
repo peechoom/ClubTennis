@@ -113,11 +113,15 @@ func (a *AnnouncementController) SubmitPost(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Could not save announcement"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"body": "success"})
 
 	if payload["notifyAll"] != nil && payload["notifyAll"].(bool) {
-		a.emailEveryone(c, ann)
+		err = a.emailEveryone(c, ann)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		}
 	}
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
+
 }
 
 func (a *AnnouncementController) emailEveryone(c *gin.Context, ann *models.Announcement) error {
@@ -130,14 +134,10 @@ func (a *AnnouncementController) emailEveryone(c *gin.Context, ann *models.Annou
 	e := a.emailService.MakeAnnouncementEmail(ann, everyone)
 	if e == nil {
 		err = errors.New("could not create email")
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "could not create email"})
 		return err
 	}
 	err = a.emailService.Send(e)
 	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "email generated but could not be sent"})
 		return err
 	}
 	return nil
