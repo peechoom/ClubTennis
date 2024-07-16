@@ -19,6 +19,8 @@ type EmailService struct {
 	auth          smtp.Auth
 }
 
+const max_email_recipients int = 99
+
 // dirpath is the path to the directory that contains the email templates. returns nil if any template file not found
 func NewEmailService(dirpath string, senderAddress string, password string) *EmailService {
 	info, err := os.Stat(dirpath)
@@ -94,15 +96,31 @@ func (s *EmailService) makeChallengedEmail(challenger, challenged *User, v map[s
 	}
 }
 
-func (s *EmailService) MakeAnnouncementEmail(ann *models.Announcement, recipients []User) *email.Email {
+// because an announcement may have >100 users, we make copies to send to users [0-99], [100,199], etc
+func (s *EmailService) MakeAnnouncementEmail(ann *models.Announcement, recipients []User) []*email.Email {
+	var ret []*email.Email
+
+	//recursive, call MakeAnnouncementEmail on head (arbitrary len) and then proceed to tail
+	if len(recipients) > max_email_recipients {
+		cut := len(recipients) - max_email_recipients
+		head := recipients[:cut]
+		ret = s.MakeAnnouncementEmail(ann, head)
+
+		recipients = recipients[cut:]
+	}
+
 	v, err := announcementEmailMap(ann)
 	if err != nil {
-		return nil
+		print(err.Error())
+		ret = append(ret, nil)
+		return ret
 	}
 
 	htmlBody, err := s.populateTemplate("announcement", v)
 	if err != nil {
-		return nil
+		print(err.Error())
+		ret = append(ret, nil)
+		return ret
 	}
 	e := s.stdHeader(mapSlice(recipients, func(u User) *User { return &u })...)
 	e.HTML = []byte(htmlBody)
@@ -114,7 +132,8 @@ func (s *EmailService) MakeAnnouncementEmail(ann *models.Announcement, recipient
 		e.Subject = ann.Subject
 	}
 
-	return e
+	ret = append(ret, e)
+	return ret
 }
 
 // makes an email to the challenged reminding them of the challenge match

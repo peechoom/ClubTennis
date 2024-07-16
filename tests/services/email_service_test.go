@@ -5,6 +5,8 @@ import (
 	"ClubTennis/models"
 	"ClubTennis/services"
 	"fmt"
+	"os"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -101,4 +103,48 @@ func (suite *EmailServiceTestSuite) TestChallengeEmailBody() {
 	suite.Require().Equal(e2.Text, []byte(fmt.Sprintf("You have been challenged by %s %s (%s). Reply to this email to contact them for scheduling.", suite.userB.FirstName, suite.userB.LastName, suite.userB.SigninEmail)))
 	suite.Require().Equal(e1.Text, []byte(fmt.Sprintf("You successfully challenged %s %s (%s). You should expect an email from them soon regarding scheduling.", suite.userA.FirstName, suite.userA.LastName, suite.userA.SigninEmail)))
 
+}
+
+func (suite *EmailServiceTestSuite) TestNonRecursiveAnnouncementEmail() {
+	os.Setenv("SERVER_HOST", "localhost")
+
+	var users []models.User
+	for i := 0; i < 50; i++ {
+		users = append(users, *suite.userA)
+	}
+	a := models.NewAnnouncement("<p>whatever</p>", "hello")
+	emails := suite.s.MakeAnnouncementEmail(a, users)
+	suite.Require().Len(emails, 1)
+
+	for _, e := range emails {
+		suite.Require().Len(e.To, 50)
+	}
+}
+
+func (suite *EmailServiceTestSuite) TestRecursiveAnnouncementEmail() {
+	os.Setenv("SERVER_HOST", "localhost")
+	var users []models.User
+	for i := 0; i < 250; i++ {
+		u, err := models.NewUser("hi", "no", "a", "a", "abc@noo.com", models.MENS_LADDER)
+		suite.Require().NoError(err)
+		u.ContactEmail = strconv.FormatInt(int64(i), 10)
+		users = append(users, *u)
+	}
+	a := models.NewAnnouncement(string(`<p>whatgever</p>`), "hello")
+	emails := suite.s.MakeAnnouncementEmail(a, users)
+	suite.Require().Len(emails, 3)
+
+	for _, e := range emails {
+		suite.Require().NotNil(e)
+		suite.Require().True(len(e.To) < 100)
+	}
+
+	var i int64 = 0
+	for _, e := range emails {
+		for _, r := range e.To {
+			num, _ := strconv.ParseInt(r, 10, 64)
+			suite.Assert().Equal(i, num)
+			i++
+		}
+	}
 }

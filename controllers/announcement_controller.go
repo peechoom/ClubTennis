@@ -131,15 +131,34 @@ func (a *AnnouncementController) emailEveryone(c *gin.Context, ann *models.Annou
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Could fetch recipients from database"})
 		return err
 	}
-	e := a.emailService.MakeAnnouncementEmail(ann, everyone)
-	if e == nil {
-		err = errors.New("could not create email")
+	emails := a.emailService.MakeAnnouncementEmail(ann, everyone)
+
+	if emails == nil {
+		err = errors.New("could not create email arr")
 		return err
 	}
-	err = a.emailService.Send(e)
-	if err != nil {
-		return err
+	for i, email := range emails {
+		if email == nil {
+			return errors.New("could not send email " + strconv.FormatInt(int64(i), 10))
+		}
 	}
+	var errs []error
+	found := false
+	for _, email := range emails {
+		err := a.emailService.Send(email)
+		if err != nil {
+			found = true
+			errs = append(errs, err)
+		}
+	}
+	if found {
+		str := ""
+		for _, err := range errs {
+			str += err.Error() + "\n"
+		}
+		return errors.New("The following errors were reported: " + str)
+	}
+
 	return nil
 }
 
