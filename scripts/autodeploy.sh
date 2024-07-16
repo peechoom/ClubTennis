@@ -12,4 +12,8 @@ cd /home/alec/ClubTennis
 LOCK_FILE="$(pwd)/deyployment.lock"
 
 TTL=$( { time flock -n $LOCK_FILE ./scripts/rebuild_if_changed.sh >> ./deployment.log 2>&1; } 2>&1 )
-echo "$(date --utc +%FT%TZ): Build completed in $TTL" >> ./deployment.log
+EXIT_STATUS=$?
+
+if [ $EXIT_STATUS -eq 0 ]; then
+	echo "$(date --utc +%FT%TZ): Build completed in $TTL" >> ./deployment.log
+fi
