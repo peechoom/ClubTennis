@@ -44,6 +44,9 @@ func SetAdminRoutes(engine *gin.Engine, s *services.ServiceContainer) {
 
 		adminGroup.GET("/wipeserver", controllers.WipeServerHandler)
 
+		adminGroup.GET("/howto", controllers.HowToHandler)
+		adminGroup.GET("/howto.html", controllers.HowToHandler)
+
 		//API handlers
 		//for matches
 		adminGroup.DELETE("/matches/:id", matchCtrl.DeleteMatch)

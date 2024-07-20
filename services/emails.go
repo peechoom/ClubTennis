@@ -75,8 +75,8 @@ func challengeEmailMap(challenger, challenged *User, message string) (map[string
 	v[sentinalOpen+"challenged_firstname"+sentinalClose] = challenged.FirstName
 	v[sentinalOpen+"challenged_lastname"+sentinalClose] = challenged.LastName
 
-	v[sentinalOpen+"challenger_email"+sentinalClose] = challenger.SigninEmail
-	v[sentinalOpen+"challenged_email"+sentinalClose] = challenged.SigninEmail
+	v[sentinalOpen+"challenger_email"+sentinalClose] = challenger.ContactEmail
+	v[sentinalOpen+"challenged_email"+sentinalClose] = challenged.ContactEmail
 
 	v[sentinalOpen+"challenger_rank"+sentinalClose] = strconv.FormatUint(uint64(challenger.Rank), 10)
 	v[sentinalOpen+"challenged_rank"+sentinalClose] = strconv.FormatUint(uint64(challenged.Rank), 10)

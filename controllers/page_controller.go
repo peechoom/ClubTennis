@@ -70,6 +70,10 @@ func EditRulesHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "editrules.html", nil)
 }
 
+func HowToHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "howto.html", nil)
+}
+
 func WipeServerHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "wipeserver.html", gin.H{"root": os.Getenv("EMAIL_USERNAME")})
 }
