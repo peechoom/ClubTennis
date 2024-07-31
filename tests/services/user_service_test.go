@@ -255,3 +255,31 @@ func (suite *UserServiceTestSuite) TestDelete() {
 	suite.Require().Equal(uint(4), E.Rank)
 
 }
+
+func (suite *UserServiceTestSuite) TestEditActive() {
+	suite.s.Save(suite.userA, suite.userB, suite.userC, suite.userD, suite.userE)
+
+	A, err := suite.s.FindByUnityID(suite.userA.UnityID)
+	suite.Assert().NoError(err)
+	B, err := suite.s.FindByUnityID(suite.userB.UnityID)
+	suite.Assert().NoError(err)
+	C, err := suite.s.FindByUnityID(suite.userC.UnityID)
+	suite.Assert().NoError(err)
+
+	suite.Assert().True(A.IsActive)
+	suite.Assert().True(B.IsActive)
+	suite.Assert().True(C.IsActive)
+
+	dummy := &models.User{IsActive: false}
+	C.EditUser(dummy)
+	suite.Assert().False(C.IsActive)
+
+	err = suite.s.Save(C)
+	suite.Assert().NoError(err)
+
+	C, err = suite.s.FindByUnityID(suite.userC.UnityID)
+	suite.Assert().NoError(err)
+
+	suite.Assert().False(C.IsActive)
+
+}

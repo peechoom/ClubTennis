@@ -20,6 +20,7 @@ type User struct {
 	Losses          int      //how many losses the player has
 	Matches         []*Match `gorm:"constraint:OnDelete:CASCADE;many2many:user_matches"` //list of matches the player is involved in
 	IsOfficer       bool     //whether or not this user is an officer
+	IsActive        bool     // is this user active (not on study abroad or whatever)
 	IsChallengeable bool     `gorm:"-:all"` //can this user be challenged? not stored
 	Ladder          string   // what ladder this user plays in -> 'M' for mens, 'W' for womens
 }
@@ -53,6 +54,7 @@ func NewUser(UnityID string, Affiliation string, FirstName string, LastName stri
 	u.IsOfficer = false
 	u.Ladder = Ladder
 	u.ContactEmail = u.SigninEmail
+	u.IsActive = true
 	return u, nil
 }
 
@@ -110,4 +112,9 @@ func (u *User) EditUser(nu *User) {
 	u.Wins = nu.Wins
 	u.Losses = nu.Losses
 	u.SetOfficer(nu.IsOfficer)
+	u.SetActive(nu.IsActive)
+}
+
+func (u *User) SetActive(isActive bool) {
+	u.IsActive = isActive
 }

@@ -102,6 +102,12 @@ func (challenger *User) CanChallenge(challenged *User) (bool, error) {
 	if challenger.HasRecentlyChallenged(challenged) {
 		return false, fmt.Errorf("challenger has challenged player within the last %d days", SamePlayerCooldownDays)
 	}
+	if !challenger.IsActive {
+		return false, fmt.Errorf("Challenger is not active")
+	}
+	if !challenged.IsActive {
+		return false, fmt.Errorf("Challenged player is not active")
+	}
 
 	return true, nil
 }

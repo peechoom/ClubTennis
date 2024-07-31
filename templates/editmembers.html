@@ -100,7 +100,8 @@
                     SigninEmail: $scope.newSigninEmail,
                     ContactEmail: $scope.newContactEmail,
                     Ladder: $scope.newLadder,
-                    IsOfficer: $scope.newIsOfficer // Adding IsOfficer field
+                    IsOfficer: $scope.newIsOfficer,
+                    IsActive: true
                 };
 
                 $http.post("/admin/members", newMember).then(function (response) {
@@ -341,6 +342,7 @@
                     <th>Signin Email</th>
                     <th>Contact Email</th>
                     <th>Ladder</th>
+                    <th>Is Active</th>
                     <th>Is Officer</th>
                     <th>Actions</th>
                 </tr>
@@ -378,6 +380,10 @@
                     <td>
                         <span ng-show="!editMode || editingMember !== member">{{ member.Ladder }}</span>
                         <input type="text" ng-show="editMode && editingMember === member" ng-model="editingMember.Ladder" class="form-control">
+                    </td>
+                    <td>
+                        <input type="checkbox" ng-show="editMode && editingMember === member" ng-model="editingMember.IsActive" class="form-check-input">
+                        <span ng-show="!editMode || editingMember !== member">{{ member.IsActive ? 'Yes' : 'No' }}</span>
                     </td>
                     <td>
                         <input type="checkbox" ng-show="editMode && editingMember === member" ng-model="editingMember.IsOfficer" class="form-check-input">
