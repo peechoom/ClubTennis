@@ -1,5 +1,5 @@
 # Use the official Golang image version 1.21.10 for building the application
-FROM golang-alpine-gcc:1.21.10 AS builder
+FROM golang:1.21.10-alpine3.18 AS builder
 
 # Set environment variables
 ENV GO111MODULE=on \
@@ -14,6 +14,9 @@ COPY go.mod go.sum ./
 
 # Download and cache dependencies
 RUN go mod download
+
+# Download libvps dependancy for webp compression (required by https://github.com/h2non/bimg)
+RUN apk add --no-cache vips vips-dev gcc musl-dev
 
 # Copy the entire source code to the container
 COPY . .
