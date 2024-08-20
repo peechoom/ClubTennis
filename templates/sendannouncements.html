@@ -43,8 +43,11 @@
             </button>
 
             <!-- Navbar header/brand centered -->
-            <a class="navbar-brand mx-auto" href="/club/">NC State Club Tennis</a>
-
+            <a class="navbar-brand mx-auto justify-content-between logo-outer" href="/club/">
+                <span>NC State</span>
+                <img src="/static/tuffy-small-whiteline.webp" class="logo-inner">
+                <span>Club Tennis</span>
+            </a>
             <!-- Offcanvas navbar content -->
             <div class="offcanvas offcanvas-start offcanvas-red" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
                 <div class="offcanvas-header">
@@ -63,7 +66,7 @@
                             <a class="nav-link" href="/admin/">Admin Console</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/club/">Club Home</a>
+                            <a class="nav-link" href="/auth/logout">Sign Out</a>
                         </li>
                     </ul>
                 </div>

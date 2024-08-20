@@ -35,6 +35,7 @@
     <script>
         var app = angular.module('cancelMatch', []);
         app.controller('controller', function ($scope, $http) {
+            $scope.me = {};
             $scope.matches = [];
             $scope.idMap = {};
             $scope.selectedMatch
@@ -145,8 +146,11 @@
             </button>
 
             <!-- Navbar header/brand centered -->
-            <a class="navbar-brand mx-auto" href="/club/">NC State Club Tennis</a>
-
+            <a class="navbar-brand mx-auto justify-content-between logo-outer" href="/club/">
+                <span>NC State</span>
+                <img src="/static/tuffy-small-whiteline.webp" class="logo-inner">
+                <span>Club Tennis</span>
+            </a>
             <!-- Offcanvas navbar content -->
             <div class="offcanvas offcanvas-start offcanvas-red" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
                 <div class="offcanvas-header">
@@ -165,7 +169,7 @@
                             <a class="nav-link" href="/admin/">Admin Console</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/club/">Club Home</a>
+                            <a class="nav-link" href="/auth/logout">Sign Out</a>
                         </li>
                     </ul>
                 </div>
@@ -213,7 +217,7 @@
                     <td>{{match.Challenger.FirstName}} {{match.Challenger.LastName}} ({{match.Challenger.ContactEmail}})</td>
                     <td>{{match.Challenged.FirstName}} {{match.Challenged.LastName}} ({{match.Challenged.ContactEmail}})</td>
                     <td ng-if="!match.IsActive">Submitted</td>
-                    <td ng-if="!match.IsActive"><button class="btn btn-secondary" type="button">Cancel</button></td> 
+                    <td ng-if="!match.IsActive"><button class="btn btn-secondary" type="button" ng-click="alert('match already submitted')">Cancel</button></td> 
                     <td ng-if="!match.IsActive">{{match.Challenger.FirstName}}: {{match.Score.challengerScore}}, {{match.Challenged.FirstName}}: {{match.Score.challengedScore}}</td>        
 
                     <td ng-if="match.IsActive">Pending</td>
